@@ -6,7 +6,7 @@ import java.util.*
 
 class Drone(val nom: String){
 
-    var positionActuelle: Point = Point(0.0,0.0,"bleu")
+    var positionActuel: Point = Point(0.0,0.0,"bleu")
     var vitesse: Double? = null
     var angle: Double? = null
 
@@ -24,13 +24,18 @@ class Drone(val nom: String){
                     val vitesseKnots = tokens[7].toDoubleOrNull() ?: 0.0
                     val angleTraj = tokens[8].toDoubleOrNull() ?: 0.0
 
-                    positionActuelle = Point(latitude,longitude, "bleu")
+                    positionActuel = Point(latitude, longitude, "bleu")
                     vitesse = vitesseKnots
                     angle = angleTraj
+
+                    // Debugging statements
+                    println("Latitude: $latitude, Longitude: $longitude, Vitesse: $vitesseKnots, Angle: $angleTraj")
                 }
             }
         }
     }
+
+
 
     private fun parseLatitude(latitudeStr: String, direction: String): Double {
         val decimalDegrees = (latitudeStr.substring(0, 2).toDouble() + latitudeStr.substring(2).toDouble() / 60)
@@ -43,16 +48,16 @@ class Drone(val nom: String){
     }
 
     override fun toString(): String {
-        return "Drone(nom='$nom', positionActuel=$positionActuelle, vitesse=$vitesse, angle=$angle)"
+        return "Drone(nom='$nom', positionActuel=$positionActuel, vitesse=$vitesse, angle=$angle)"
     }
 
 
     fun genereTrameNMEA(): String {
-        if (this.positionActuelle == null || this.vitesse == null || this.angle == null) {
+        if (this.positionActuel == null || this.vitesse == null || this.angle == null) {
             throw IllegalArgumentException("Drone information is incomplete.")
         }
-        val latitude = formatLatitude(this.positionActuelle!!.latitude)
-        val longitude = formatLongitude(this.positionActuelle!!.longitude)
+        val latitude = formatLatitude(this.positionActuel!!.latitude)
+        val longitude = formatLongitude(this.positionActuel!!.longitude)
         val vitesseKnots = String.format(Locale.US, "%.2f", this.vitesse!!)
         val angleTraj = String.format(Locale.US, "%.2f", this.angle!!)
         val date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("ddMMyy"))
@@ -67,9 +72,10 @@ class Drone(val nom: String){
     }
 
     private fun formatLongitude(longitude: Double): String {
-        val degrees = longitude.toInt().toString().padStart(3, '0')
-        val minutes = String.format(Locale.US, "%.4f", (longitude - degrees.toInt()).times(60))
-        return "$degrees$minutes"
+        val degrees = Math.abs(longitude.toInt()).toString().padStart(3, '0')
+        val minutes = String.format(Locale.US, "%.4f", (Math.abs(longitude) - Math.abs(longitude.toInt())).times(60))
+        val direction = if (longitude < 0) "W" else "E"
+        return "$degrees$minutes,$direction"
     }
 
 }
