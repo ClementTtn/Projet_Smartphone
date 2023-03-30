@@ -6,7 +6,7 @@ import java.util.*
 
 class Drone(val nom: String){
 
-    var positionActuel: Point? = null
+    var positionActuelle: Point = Point(0.0,0.0,"bleu")
     var vitesse: Double? = null
     var angle: Double? = null
 
@@ -24,7 +24,7 @@ class Drone(val nom: String){
                     val vitesseKnots = tokens[7].toDoubleOrNull() ?: 0.0
                     val angleTraj = tokens[8].toDoubleOrNull() ?: 0.0
 
-                    positionActuel = Point(latitude,longitude, "bleu")
+                    positionActuelle = Point(latitude,longitude, "bleu")
                     vitesse = vitesseKnots
                     angle = angleTraj
                 }
@@ -43,16 +43,16 @@ class Drone(val nom: String){
     }
 
     override fun toString(): String {
-        return "Drone(nom='$nom', positionActuel=$positionActuel, vitesse=$vitesse, angle=$angle)"
+        return "Drone(nom='$nom', positionActuel=$positionActuelle, vitesse=$vitesse, angle=$angle)"
     }
 
 
     fun genereTrameNMEA(): String {
-        if (this.positionActuel == null || this.vitesse == null || this.angle == null) {
+        if (this.positionActuelle == null || this.vitesse == null || this.angle == null) {
             throw IllegalArgumentException("Drone information is incomplete.")
         }
-        val latitude = formatLatitude(this.positionActuel!!.latitude)
-        val longitude = formatLongitude(this.positionActuel!!.longitude)
+        val latitude = formatLatitude(this.positionActuelle!!.latitude)
+        val longitude = formatLongitude(this.positionActuelle!!.longitude)
         val vitesseKnots = String.format(Locale.US, "%.2f", this.vitesse!!)
         val angleTraj = String.format(Locale.US, "%.2f", this.angle!!)
         val date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("ddMMyy"))
