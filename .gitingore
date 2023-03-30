@@ -1,2 +1,2 @@
 # ignore AndroidManifest.xml file
-app/src/main/AndroidManifest.xml
+./Projet_smartphone/app/src/main/AndroidManifest.xml
