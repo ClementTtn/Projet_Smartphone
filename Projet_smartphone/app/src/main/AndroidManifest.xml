@@ -25,10 +25,10 @@
         -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="YOUR_API_KEY" />
+            android:value="API_KEY" />
 
         <activity
-            android:name=".MapsActivity"
+            android:name=".trajectoryAddActivity"
             android:exported="true"
             android:label="@string/title_activity_maps">
             <intent-filter>
