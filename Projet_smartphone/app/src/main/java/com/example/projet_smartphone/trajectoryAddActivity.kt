@@ -1,24 +1,23 @@
 package com.example.projet_smartphone
 
+import android.graphics.*
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 
-import android.graphics.Color
 import androidx.core.content.ContextCompat
 import com.example.projet_smartphone.databinding.TrajectoryAddActivityBinding
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
 
-class trajectoryAddActivity : AppCompatActivity(), OnMapReadyCallback {
+class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback, OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: TrajectoryAddActivityBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        MapsInitializer.initialize(applicationContext, MapsInitializer.Renderer.LATEST, this)
 
         binding = TrajectoryAddActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -33,6 +32,13 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapReadyCallback {
             setBackgroundDrawable(ContextCompat.getDrawable(this@trajectoryAddActivity, R.drawable.background_degrade))
         }
         window.statusBarColor = Color.TRANSPARENT
+    }
+
+    override fun onMapsSdkInitialized(renderer: MapsInitializer.Renderer) {
+        when (renderer) {
+            MapsInitializer.Renderer.LATEST -> Log.d("MyActivity", "The latest version of the renderer is used.")
+            MapsInitializer.Renderer.LEGACY -> Log.d("MyActivity", "The legacy version of the renderer is used.")
+        }
     }
 
     /**
@@ -52,15 +58,11 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapReadyCallback {
 
         // Ajouter un écouteur pour le clic sur la carte
         mMap.setOnMapClickListener { latLng ->
-            // Obtenir la latitude et la longitude du clic
-            val latitude = latLng.latitude
-            val longitude = latLng.longitude
 
             // Ajouter un marqueur à la position du clic et l'ajouter à la liste
             val markerOptions = MarkerOptions()
                 .position(latLng)
-                .title("Position du clic")
-                .snippet("Lat: $latitude, Lng: $longitude")
+                .title("Numéro ${positions.size+1}")
 
             mMap.addMarker(markerOptions)
             positions.add(latLng)
@@ -68,9 +70,14 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapReadyCallback {
             // Mettre à jour la ligne avec les positions de tous les clics
             if(positions.size > 1){
                 val lastPosition = positions[positions.size - 2]
-                val line = mMap.addPolyline(
+
+                val stampStyle = TextureStyle.newBuilder(BitmapDescriptorFactory.fromResource(android.R.drawable.arrow_down_float)).build()
+                val span = StyleSpan(StrokeStyle.colorBuilder(Color.BLACK).stamp(stampStyle).build())
+                mMap.addPolyline(
                     PolylineOptions()
                         .add(lastPosition,latLng)
+                        .addSpan(span)
+                        .width(30f)
                 )
             }
         }
