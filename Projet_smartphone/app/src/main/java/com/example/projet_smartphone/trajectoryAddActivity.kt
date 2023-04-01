@@ -1,22 +1,22 @@
 package com.example.projet_smartphone
 
-import android.graphics.*
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
-import android.util.Log
-import androidx.activity.result.contract.ActivityResultContracts
-
-import androidx.core.content.ContextCompat
-import com.example.projet_smartphone.databinding.TrajectoryAddActivityBinding
-import com.google.android.gms.maps.*
-import com.google.android.gms.maps.model.*
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
+import android.graphics.*
 import android.location.Location
+import android.os.Bundle
+import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import com.google.android.gms.location.LocationServices
+import androidx.core.content.ContextCompat
+import com.example.projet_smartphone.databinding.TrajectoryAddActivityBinding
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.*
+import com.google.android.gms.maps.GoogleMap.OnMarkerDragListener
+import com.google.android.gms.maps.model.*
+
 
 class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback, OnMapReadyCallback {
 
@@ -71,31 +71,51 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
         getDeviceLocation()
 
         // Créer une liste pour stocker les positions des clics
-        val positions : ArrayList<LatLng> = ArrayList()
+        val positions : ArrayList<Marker> = ArrayList()
+        val polylines : ArrayList<Polyline> = ArrayList()
+
+        // Ajouter d'un draglistener sur le marqueur
+        mMap.setOnMarkerDragListener(object : OnMarkerDragListener {
+            override fun onMarkerDragStart(marker: Marker) {}
+            override fun onMarkerDrag(marker: Marker) {}
+            override fun onMarkerDragEnd(marker: Marker) {
+
+                // Mise à jour des polylines
+                for (i in 0 until positions.size) {
+                    var markerList = positions[i]
+
+                    if(markerList == marker && i > 0){
+                        print("test $i\n")
+                        polylines[i-1].remove()
+                        polylines[i-1] = addPolyline(positions[i-1].position,marker.position)
+                        if(polylines.size > i){
+                            polylines[i].remove()
+                            polylines[i] = addPolyline(marker.position,positions[i+1].position)
+                        }
+                        break
+                    }
+                    else if( markerList == marker && i == 0){
+                        if(polylines.size > i){
+                            polylines[i].remove()
+                            polylines[i] = addPolyline(marker.position,positions[i+1].position)
+                        }
+                        break
+                    }
+                }
+
+            }
+        })
 
         // Ajouter un écouteur pour le clic sur la carte
         mMap.setOnMapClickListener { latLng ->
 
             // Ajouter un marqueur à la position du clic et l'ajouter à la liste
-            val markerOptions = MarkerOptions()
-                .position(latLng)
-                .title("Numéro ${positions.size+1}")
-
-            mMap.addMarker(markerOptions)
-            positions.add(latLng)
+            positions.add(addMarker(latLng,positions.size)!!)
 
             // Mettre à jour la ligne avec les positions de tous les clics
             if(positions.size > 1){
-                val lastPosition = positions[positions.size - 2]
-
-                val stampStyle = TextureStyle.newBuilder(BitmapDescriptorFactory.fromResource(android.R.drawable.arrow_down_float)).build()
-                val span = StyleSpan(StrokeStyle.colorBuilder(Color.BLACK).stamp(stampStyle).build())
-                mMap.addPolyline(
-                    PolylineOptions()
-                        .add(lastPosition,latLng)
-                        .addSpan(span)
-                        .width(30f)
-                )
+                val lastPosition = positions[positions.size - 2].position
+                polylines.add(addPolyline(lastPosition,latLng))
             }
         }
 
@@ -103,6 +123,26 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
         val coord = LatLng(46.160329,-1.151139)
         mMap.moveCamera(CameraUpdateFactory.zoomTo(DEFAULT_ZOOM.toFloat()))
         mMap.moveCamera(CameraUpdateFactory.newLatLng(coord))
+    }
+
+    private fun addPolyline(startPosition : LatLng, endPosition: LatLng) : Polyline {
+        val stampStyle = TextureStyle.newBuilder(BitmapDescriptorFactory.fromResource(android.R.drawable.arrow_down_float)).build()
+        val span = StyleSpan(StrokeStyle.colorBuilder(Color.BLACK).stamp(stampStyle).build())
+        return mMap.addPolyline(
+            PolylineOptions()
+                .add(startPosition, endPosition)
+                .addSpan(span)
+                .width(30f)
+                .startCap(RoundCap())
+                .endCap(RoundCap())
+        )
+    }
+
+    private fun addMarker(position : LatLng, numero : Int) : Marker{
+        return mMap.addMarker(MarkerOptions()
+            .position(position)
+            .title("Numéro ${numero+1}")
+            .draggable(true))!!
     }
 
     @SuppressLint("MissingPermission")
