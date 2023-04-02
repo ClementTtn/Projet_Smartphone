@@ -2,11 +2,15 @@ package com.example.projet_smartphone
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.AlertDialog
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.*
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
+import android.widget.Button
+import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -16,13 +20,15 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.GoogleMap.OnMarkerDragListener
 import com.google.android.gms.maps.model.*
-
+import java.io.*
 
 class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback, OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: TrajectoryAddActivityBinding
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+    private val positions : ArrayList<Marker> = ArrayList()
+    private val polylines : ArrayList<Polyline> = ArrayList()
     private var locationPermissionGranted = false
     private var lastKnownLocation: Location? = null
     private val DEFAULT_ZOOM = 14
@@ -30,7 +36,8 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
+        // Force l'initialisation avec le dernier moteur de rendu de la map
         MapsInitializer.initialize(applicationContext, MapsInitializer.Renderer.LATEST, this)
 
         binding = TrajectoryAddActivityBinding.inflate(layoutInflater)
@@ -48,6 +55,44 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
             setBackgroundDrawable(ContextCompat.getDrawable(this@trajectoryAddActivity, R.drawable.background_degrade))
         }
         window.statusBarColor = Color.TRANSPARENT
+
+        val saveButton = findViewById<Button>(R.id.buttonSauvegarder)
+        saveButton.setOnClickListener{
+            if(positions.size > 1){
+                // Création de la popup de sauvegarder de la trajectoire
+                val dialogBuilder = AlertDialog.Builder(this)
+                val inflater = this.layoutInflater
+                val dialogView = inflater.inflate(R.layout.popup_save_trajectory, null)
+                dialogBuilder.setView(dialogView)
+
+                val dialog = dialogBuilder.create()
+
+                val editText = dialogView.findViewById<EditText>(R.id.edit_text)
+                val boutonSauvegarder = dialogView.findViewById<Button>(R.id.button_sauvegarder)
+
+                // Fermeture de la popup
+                val bouttonAnnuler = dialogView.findViewById<Button>(R.id.button_annuler)
+                bouttonAnnuler.setOnClickListener{
+                    dialog.dismiss()
+                }
+
+                dialog.show()
+            }
+            else{
+                // Création de la popup trajectoire invalide
+                val context: Context = this
+                val builder = AlertDialog.Builder(context)
+                builder.setTitle("La trajectoire est invalide")
+                builder.setMessage("Votre trajectoire doit avoir plus d'un point.")
+                val dialog = builder.create()
+                dialog.show()
+            }
+        }
+
+        val lancerButton = findViewById<Button>(R.id.buttonLancer)
+        lancerButton.setOnClickListener{
+            // Lancement de la trajectoire
+        }
 
     }
 
@@ -70,10 +115,6 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
         // Get the current location of the device and set the position of the map.
         getDeviceLocation()
 
-        // Créer une liste pour stocker les positions des clics
-        val positions : ArrayList<Marker> = ArrayList()
-        val polylines : ArrayList<Polyline> = ArrayList()
-
         // Ajouter d'un draglistener sur le marqueur
         mMap.setOnMarkerDragListener(object : OnMarkerDragListener {
             override fun onMarkerDragStart(marker: Marker) {}
@@ -82,24 +123,28 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
 
                 // Mise à jour des polylines
                 for (i in 0 until positions.size) {
-                    var markerList = positions[i]
+                    val markerList = positions[i]
 
-                    if(markerList == marker && i > 0){
-                        print("test $i\n")
-                        polylines[i-1].remove()
-                        polylines[i-1] = addPolyline(positions[i-1].position,marker.position)
-                        if(polylines.size > i){
-                            polylines[i].remove()
-                            polylines[i] = addPolyline(marker.position,positions[i+1].position)
+                    // Recherche du marker modifié
+                    if(markerList == marker){
+
+                        // Mise à jour des polylines, suppresion et création
+                        if( i > 0){
+                            polylines[i-1].remove()
+                            polylines[i-1] = addPolyline(positions[i-1].position,marker.position)
+                            if(polylines.size > i){
+                                polylines[i].remove()
+                                polylines[i] = addPolyline(marker.position,positions[i+1].position)
+                            }
+                            break
                         }
-                        break
-                    }
-                    else if( markerList == marker && i == 0){
-                        if(polylines.size > i){
-                            polylines[i].remove()
-                            polylines[i] = addPolyline(marker.position,positions[i+1].position)
+                        else if(i == 0){
+                            if(polylines.size > i){
+                                polylines[i].remove()
+                                polylines[i] = addPolyline(marker.position,positions[i+1].position)
+                            }
+                            break
                         }
-                        break
                     }
                 }
 
@@ -109,10 +154,10 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
         // Ajouter un écouteur pour le clic sur la carte
         mMap.setOnMapClickListener { latLng ->
 
-            // Ajouter un marqueur à la position du clic et l'ajouter à la liste
-            positions.add(addMarker(latLng,positions.size)!!)
+            // Ajout d'un marqueur à la position du clic et l'ajouter à la liste
+            positions.add(addMarker(latLng,positions.size))
 
-            // Mettre à jour la ligne avec les positions de tous les clics
+            // Ajout du polyline reliant les marqueurs, si il y a plus d'un marqueur
             if(positions.size > 1){
                 val lastPosition = positions[positions.size - 2].position
                 polylines.add(addPolyline(lastPosition,latLng))
