@@ -1,7 +1,13 @@
 package com.example.projet_smartphone
 
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
+import androidx.appcompat.app.AppCompatDelegate
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -10,12 +16,40 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.example.projet_smartphone.databinding.ActivityMapsBinding
+import com.google.android.gms.maps.model.Marker
 
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
+
+class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListener {
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
+    private lateinit var sensorManager: SensorManager
+    private lateinit var DroneMarkeur: Marker // Define the marker as a class-level variable
+    var accelerometerValues = Array(2) { 0.0 }
+    var vitesseMAX = 10.0
 
+
+    var sydney = LatLng(46.160329, -1.151139)
+
+
+    fun updateLatLng(currentLatLng: LatLng, direction: Double, speed: Double): LatLng {
+        val distance = speed / 3600.0 // Convert speed from km/h to km/s
+
+        val lat1 = Math.toRadians(currentLatLng.latitude)
+        val lon1 = Math.toRadians(currentLatLng.longitude)
+
+        val R = 6371.0 // Earth radius in km
+
+        val lat2 = Math.asin(Math.sin(lat1) * Math.cos(distance/R) + Math.cos(lat1) * Math.sin(distance/R) * Math.cos(
+            direction
+        ))
+        val lon2 = lon1 + Math.atan2(Math.sin(direction) * Math.sin(distance/R) * Math.cos(lat1), Math.cos(distance/R) - Math.sin(lat1) * Math.sin(lat2))
+
+        val updatedLat = Math.toDegrees(lat2)
+        val updatedLng = Math.toDegrees(lon2)
+
+        return LatLng(updatedLat, updatedLng)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,13 +57,81 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+        // Keeps phone in light mode
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+
     }
 
+    override fun onMapReady(googleMap: GoogleMap) {
+        mMap = googleMap
+
+        // Add a marker in Sydney and move the camera
+        DroneMarkeur = mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))!!
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+
+        setUpSensorStuff()
+        startMarkerRefresh()
+    }
+
+    private fun setUpSensorStuff() {
+        // Create the sensor manager
+        sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
+
+        // Specify the sensor you want to listen to
+        val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.also { accelerometer ->
+            sensorManager.registerListener(
+                this,
+                accelerometer,
+                SensorManager.SENSOR_DELAY_UI ,
+                SensorManager.SENSOR_DELAY_UI
+            )
+        }
+    }
+
+    override fun onSensorChanged(event: SensorEvent?) {
+        // Checks for the sensor we have registered
+        if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
+            val xValue = event.values[0]
+            val yValue = event.values[1]*-1
+            val radianAngle = Math.atan2(yValue.toDouble(), xValue.toDouble())
+            val vitesse = Math.sqrt((xValue*xValue + yValue*yValue).toDouble()/10)
+
+            accelerometerValues = arrayOf(radianAngle,vitesse)
+
+        }
+    }
+
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+        return
+    }
+
+    override fun onDestroy() {
+        sensorManager.unregisterListener(this)
+        super.onDestroy()
+    }
+
+    private lateinit var marker: Marker
+    private val handler = Handler()
+
+    fun startMarkerRefresh() {
+        // Répéter la mise à jour du marqueur toutes les 2 secondes
+        handler.postDelayed(object : Runnable {
+            override fun run() {
+                // Mettre à jour la position du marqueur
+
+                sydney = updateLatLng(sydney, accelerometerValues[0], vitesseMAX*accelerometerValues[1])
+
+                DroneMarkeur.position = sydney
+                // Répéter l'exécution de cette fonction toutes les 2 secondes
+
+                handler.postDelayed(this, 1000)
+            }
+        }, 1000)
+    }
 
     /**
      * Manipulates the map once available.
@@ -40,48 +142,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
      * it inside the SupportMapFragment. This method will only be triggered once the user has
      * installed Google Play services and returned to the app.
      */
-    override fun onMapReady(googleMap: GoogleMap) {
-        mMap = googleMap
 
 
-        var trameNMEA = "\$GPRMC,104339.271,A,4609.055502,N,00110.158403,W,0.0,114.4,300323,,,*33\n" +
-                "\$IIVHW,114.4,T,114.4,M,0.0,N,0.0,K*55\n" +
-                "\$GPVTG,114.4,T,114.4,M,0.0,N,0.0,K*4E\n" +
-                "\$IIHDT,114.4,T*22\n" +
-                "\$GPGLL,4609.055502,N,00110.158403,W,104339.271,A*29\n" +
-                "\$GPGGA,104339.271,4609.055502,N,00110.158403,W,1,4,0.6,2.0,M,,,,*22\n" +
-                "\$GPGSA,A,3,8,11,15,22,,,,,,,,,3.3,0.6,0.6*0E\n" +
-                "\$GPZDA,104339.271,30,03,2023,02,00*5F\n" +
-                "\$IIVBW,-0.3,-0.3,A,-0.3,-0.2,A,-0.1,A,-0.7,A*44\n" +
-                "!AIVDO,1,1,,A,17PaewhP00wraKPJJ6>lMkU>0000,0*6F\n" +
-                "!AIVDM,1,1,,A,17PaewhP00wraKPJJ6>lMkU>0000,0*6D\n" +
-                "\$WIMWD,9.2,T,9.2,M,2.0,N,1.0,M*59\n" +
-                "\$WIMWV,254.9,R,2.0,N,A*2B\n" +
-                "\$IIMTW,13.2,C*13\n" +
-                "\$SDDPT,1.7,0.3*52\n" +
-                "\$SDDBT,5.4,f,1.7,M,0.9,F*08\n" +
-                "\$INWPL,4609.055502,N,00110.158403,W,wpt*3D\n" +
-                "!AIVDO,2,1,9,A,57Paewh00001<To7;?@plD5<Tl0000000000000U1@:550w:c2TnA3QF,0*26\n" +
-                "!AIVDO,2,2,9,A,@00000000000002,2*5D\n" +
-                "!AIVDM,2,1,9,A,57Paewh00001<To7;?@plD5<Tl0000000000000U1@:550w:c2TnA3QF,0*24\n" +
-                "!AIVDM,2,2,9,A,@00000000000002,2*5F\n" +
-                "\$IIRPM,E,1,0,10.5,A*7C\n" +
-                "\$IIRPM,E,2,0,10.5,A*7F"
 
-        val drone = Drone("Mon Drone")
-
-        drone.parseNMEA(trameNMEA)
-        System.out.println(drone.toString())
-        System.out.println("====================================")
-        System.out.println(drone.genereTrameNMEA())
-        System.out.println("====================================")
-        System.out.println("====================================")
-        System.out.println(drone.toString())
-
-
-        // Add a marker in Sydney and move the camera
-        val sydney = LatLng(drone.positionActuel.latitude, drone.positionActuel.longitude)
-        mMap.addMarker(MarkerOptions().position(sydney).title(drone.nom))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
-    }
 }
