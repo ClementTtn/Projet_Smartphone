@@ -52,16 +52,17 @@ class Drone(val nom: String){
     }
 
 
-    fun genereTrameNMEA(): String {
-        if (this.positionActuel == null || this.vitesse == null || this.angle == null) {
-            throw IllegalArgumentException("Drone information is incomplete.")
-        }
+    fun genereTrameNMEA(latitude: Double,longitude: Double,vitesse: Double ): String {
+        this.positionActuel.latitude = latitude
+        this.positionActuel.longitude = longitude
+        this.vitesse = vitesse
         val latitude = formatLatitude(this.positionActuel!!.latitude)
         val longitude = formatLongitude(this.positionActuel!!.longitude)
         val vitesseKnots = String.format(Locale.US, "%.2f", this.vitesse!!)
         val angleTraj = String.format(Locale.US, "%.2f", this.angle!!)
         val date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("ddMMyy"))
 
+        System.out.println("Trame NMEA :")
         return "\$GPRMC,${date}000000,A,$latitude,N,$longitude,E,$vitesseKnots,$angleTraj,$date,0.0,E,A"
     }
 

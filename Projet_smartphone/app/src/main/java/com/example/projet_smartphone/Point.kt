@@ -1,6 +1,6 @@
 package com.example.projet_smartphone
 
-class Point(val latitude: Double, val longitude: Double, val couleur: String) {
+class Point(var latitude: Double, var longitude: Double, var couleur: String) {
     companion object {
         private var counter = 1
     }

@@ -24,12 +24,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
     private lateinit var sensorManager: SensorManager
-    private lateinit var DroneMarkeur: Marker // Define the marker as a class-level variable
+    private lateinit var DroneMarkeur: Marker
+    private lateinit var drone : Drone
+    private lateinit var positionDrone : LatLng
     var accelerometerValues = Array(2) { 0.0 }
     var vitesseMAX = 10.0
 
 
-    var sydney = LatLng(46.160329, -1.151139)
+
 
 
     fun updateLatLng(currentLatLng: LatLng, direction: Double, speed: Double): LatLng {
@@ -69,9 +71,40 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
+        var trameNMEA = "\$GPRMC,104339.271,A,4609.055502,N,00110.158403,W,0.0,114.4,300323,,,*33\n" +
+                "\$IIVHW,114.4,T,114.4,M,0.0,N,0.0,K*55\n" +
+                "\$GPVTG,114.4,T,114.4,M,0.0,N,0.0,K*4E\n" +
+                "\$IIHDT,114.4,T*22\n" +
+                "\$GPGLL,4609.055502,N,00110.158403,W,104339.271,A*29\n" +
+                "\$GPGGA,104339.271,4609.055502,N,00110.158403,W,1,4,0.6,2.0,M,,,,*22\n" +
+                "\$GPGSA,A,3,8,11,15,22,,,,,,,,,3.3,0.6,0.6*0E\n" +
+                "\$GPZDA,104339.271,30,03,2023,02,00*5F\n" +
+                "\$IIVBW,-0.3,-0.3,A,-0.3,-0.2,A,-0.1,A,-0.7,A*44\n" +
+                "!AIVDO,1,1,,A,17PaewhP00wraKPJJ6>lMkU>0000,0*6F\n" +
+                "!AIVDM,1,1,,A,17PaewhP00wraKPJJ6>lMkU>0000,0*6D\n" +
+                "\$WIMWD,9.2,T,9.2,M,2.0,N,1.0,M*59\n" +
+                "\$WIMWV,254.9,R,2.0,N,A*2B\n" +
+                "\$IIMTW,13.2,C*13\n" +
+                "\$SDDPT,1.7,0.3*52\n" +
+                "\$SDDBT,5.4,f,1.7,M,0.9,F*08\n" +
+                "\$INWPL,4609.055502,N,00110.158403,W,wpt*3D\n" +
+                "!AIVDO,2,1,9,A,57Paewh00001<To7;?@plD5<Tl0000000000000U1@:550w:c2TnA3QF,0*26\n" +
+                "!AIVDO,2,2,9,A,@00000000000002,2*5D\n" +
+                "!AIVDM,2,1,9,A,57Paewh00001<To7;?@plD5<Tl0000000000000U1@:550w:c2TnA3QF,0*24\n" +
+                "!AIVDM,2,2,9,A,@00000000000002,2*5F\n" +
+                "\$IIRPM,E,1,0,10.5,A*7C\n" +
+                "\$IIRPM,E,2,0,10.5,A*7F"
+
         // Add a marker in Sydney and move the camera
-        DroneMarkeur = mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))!!
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+        drone = Drone("Mon drone")
+        drone.parseNMEA(trameNMEA)
+        positionDrone = LatLng(drone.positionActuel.latitude, drone.positionActuel.longitude)
+
+        DroneMarkeur = mMap.addMarker(MarkerOptions().position(positionDrone).title(drone.nom))!!
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(positionDrone))
+        val zoomLevel = 15f
+        val Zoom = CameraUpdateFactory.newLatLngZoom(positionDrone, zoomLevel)
+        mMap.animateCamera(Zoom)
 
         setUpSensorStuff()
         startMarkerRefresh()
@@ -122,10 +155,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
         handler.postDelayed(object : Runnable {
             override fun run() {
                 // Mettre à jour la position du marqueur
+                var vitesse = vitesseMAX*accelerometerValues[1]
+                positionDrone = updateLatLng(positionDrone, accelerometerValues[0], vitesse)
+                System.out.println(drone.genereTrameNMEA(positionDrone.latitude,positionDrone.latitude,vitesse))
 
-                sydney = updateLatLng(sydney, accelerometerValues[0], vitesseMAX*accelerometerValues[1])
-
-                DroneMarkeur.position = sydney
+                DroneMarkeur.position = positionDrone
                 // Répéter l'exécution de cette fonction toutes les 2 secondes
 
                 handler.postDelayed(this, 1000)
