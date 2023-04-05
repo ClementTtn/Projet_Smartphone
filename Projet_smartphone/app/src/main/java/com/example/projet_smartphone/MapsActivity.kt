@@ -11,6 +11,7 @@ import android.os.Handler
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
+import android.content.pm.ActivityInfo
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -76,6 +77,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
             setBackgroundDrawable(ContextCompat.getDrawable(this@MapsActivity, R.drawable.background_degrade))
         }
         window.statusBarColor = Color.TRANSPARENT
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
 
     }
 
