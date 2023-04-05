@@ -13,5 +13,10 @@
         <item name="android:statusBarColor">@color/base_color</item>
         <!-- Customize your theme here. -->
         <item name="android:windowBackground">@drawable/background_degrade</item>
+        <!-- Font Color -->
+        <item name="android:font">@font/font</item>
+        <item name="android:fontFamily">@font/font</item>
     </style>
+
+
 </resources>
