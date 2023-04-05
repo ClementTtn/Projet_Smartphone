@@ -1,5 +1,6 @@
 package com.example.projet_smartphone
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.MenuItem
@@ -24,21 +25,30 @@ class ManagedTrajec : AppCompatActivity() {
         window.statusBarColor = Color.TRANSPARENT
 
         val list = arrayListOf<String>()
-        list.addAll(listOf("Trajectoire 1","Traj", "Trajectoire 3", "Trajectoire 3", "Trajectoire 3", "Trajectoire 3", "Trajectoire 3", "Trajectoire 3"))
-
+        val files = applicationContext.filesDir.listFiles { file -> file.name.endsWith(".traj") }
+        for (file in files) {
+            print("File ${file.nameWithoutExtension}\n")
+            list.add(file.nameWithoutExtension)
+        }
         val listView: ListView = findViewById(R.id._listView)
         adapter = MyAdapter(list,  this)
         listView.adapter = adapter
 
+        listView.onItemClickListener = AdapterView.OnItemClickListener { adapterView, _, position, _ ->
+            val intent = Intent(this, TrajectoryAddActivity::class.java)
 
-        listView.onItemClickListener = AdapterView.OnItemClickListener { adapterView, view, position, id ->
-            println(adapterView.getItemAtPosition(position))
+            intent.putExtra("nom_fichier",adapterView.getItemAtPosition(position).toString() + ".traj")
+
+            startActivity(intent)
         }
 
         val ajout: Button = findViewById(R.id.button2)
         ajout.setOnClickListener { //chargement de la vue de création de trajectoire
-            println("ok button")
+            val intent = Intent(this, TrajectoryAddActivity::class.java)
+
+            startActivity(intent)
         }
+
     }
 
     // Retour au menu principale

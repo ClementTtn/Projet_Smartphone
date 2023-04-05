@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
         val boutonDrone = findViewById<Button>(R.id.button_drone)
-        boutonDrone.setOnClickListener(){
+        boutonDrone.setOnClickListener{
             val intent = Intent(this@MainActivity, MapsActivity::class.java)
 
             startActivity(intent)

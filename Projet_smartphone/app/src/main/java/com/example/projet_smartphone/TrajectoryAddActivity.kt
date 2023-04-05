@@ -23,6 +23,7 @@ import com.google.android.gms.maps.*
 import com.google.android.gms.maps.GoogleMap.OnMarkerDragListener
 import com.google.android.gms.maps.model.*
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -37,6 +38,7 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private var points : ArrayList<Point> = ArrayList()
     private val trajectoires : ArrayList<Trajectoire> = ArrayList()
+    private var nomFichier : String? = null
     private lateinit var lastMarker : Marker
     private var locationPermissionGranted = false
     private var lastKnownLocation: Location? = null
@@ -70,6 +72,8 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
         // Blocage de la rotation
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
+        nomFichier = intent.getStringExtra("nom_fichier")
+
         val saveButton = findViewById<Button>(R.id.buttonSauvegarder)
         saveButton.setOnClickListener{
             if(points.size > 1){
@@ -85,12 +89,6 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
                 val boutonSauvegarder = dialogView.findViewById<Button>(R.id.button_sauvegarder)
 
                 boutonSauvegarder.setOnClickListener{
-
-                    // Transformation des markers en points
-                    val points : ArrayList<Point> = ArrayList()
-                    for (i in 0 until points.size ){
-                        points.add(Point(points[i].latLng,"",i+1))
-                    }
 
                     val gson = Gson()
                     val jsonString = gson.toJson(points)
@@ -205,6 +203,10 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
         // Get the current location of the device and set the position of the map.
         getDeviceLocation()
 
+        if(nomFichier != null){
+            redrawMap(nomFichier!!)
+        }
+
         mMap.setOnPolylineClickListener { polyline ->
 
             val pointDebut = polyline.points.first()
@@ -299,15 +301,46 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
         mMap.moveCamera(CameraUpdateFactory.newLatLng(coord))
     }
 
-    private fun redrawMap(){
+    private fun redrawMap(nomFichier : String){
 
         // On remets à la map et les polylines
         mMap.clear()
 
+        try {
+            val fileInputStream = openFileInput(nomFichier)
+            val inputStreamReader = InputStreamReader(fileInputStream)
+            val bufferedReader = BufferedReader(inputStreamReader)
+
+            val stringBuilder = StringBuilder()
+            var line: String? = bufferedReader.readLine()
+            while (line != null) {
+                stringBuilder.append(line).append("\n")
+                line = bufferedReader.readLine()
+            }
+            bufferedReader.close()
+
+            val json = stringBuilder.toString()
+            val gson = Gson()
+            val type = object : TypeToken<ArrayList<Point>>() {}.type
+            points = gson.fromJson(json, type)
+
+            print("test $nomFichier ${points.size}\n$json\n\n\n\n")
+        } catch (e: FileNotFoundException) {
+            e.printStackTrace()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
         // On retrace les polylines
-        for(i in 1 until points.size){
-            val point = points[i]
-            //addPolyline(points[i-1].latLng,point.latLng)
+        for(i in 0 until points.size){
+            val marker = addMarker(points[i].latLng,i)
+            if(i > 0){
+                val polyline = addPolyline(points[i-1].latLng,points[i].latLng)
+                trajectoires.add(Trajectoire(lastMarker,marker,polyline))
+            }
+            lastMarker = marker
         }
     }
 
