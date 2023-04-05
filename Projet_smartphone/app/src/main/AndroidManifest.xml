@@ -31,9 +31,14 @@
         </activity>
 
         <activity
-            android:name=".trajectoryAddActivity"
+            android:name=".MapsActivity"
             android:exported="false"
             android:label="@string/title_activity_maps" />
+
+        <activity
+            android:name=".trajectoryAddActivity"
+            android:exported="false"
+            android:label="@string/title_activity_trajectory_add" />
     </application>
 
 </manifest>

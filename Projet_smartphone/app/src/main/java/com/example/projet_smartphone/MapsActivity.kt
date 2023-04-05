@@ -1,5 +1,6 @@
 package com.example.projet_smartphone
 
+import android.graphics.Color
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -7,7 +8,9 @@ import android.hardware.SensorManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.ContextCompat
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -65,6 +68,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
         mapFragment.getMapAsync(this)
         // Keeps phone in light mode
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+
+        // Activation du bouton de retour au menu principale et modification de l'apparence
+        supportActionBar?.apply {
+            setDisplayHomeAsUpEnabled(true)
+            setHomeButtonEnabled(true)
+            setBackgroundDrawable(ContextCompat.getDrawable(this@MapsActivity, R.drawable.background_degrade))
+        }
+        window.statusBarColor = Color.TRANSPARENT
 
     }
 
@@ -165,6 +176,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
                 handler.postDelayed(this, 1000)
             }
         }, 1000)
+    }
+
+    // Retour au menu principale
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> {
+                finish()
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     /**

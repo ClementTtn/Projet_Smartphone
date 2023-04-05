@@ -19,6 +19,11 @@ class MainActivity : AppCompatActivity() {
         window.statusBarColor = Color.TRANSPARENT
 
         val boutonDrone = findViewById<Button>(R.id.button_drone)
+        boutonDrone.setOnClickListener(){
+            val intent = Intent(this@MainActivity, MapsActivity::class.java)
+
+            startActivity(intent)
+        }
 
         val boutonTrajectory = findViewById<Button>(R.id.button_trajectory)
         boutonTrajectory.setOnClickListener{
