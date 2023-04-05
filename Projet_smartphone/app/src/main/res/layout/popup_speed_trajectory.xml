@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/title_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/title_popup_speed"
+        android:textColor="@color/black"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:textSize="24sp"
+        />
+
+    <EditText
+        android:id="@+id/edit_speed"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="number"
+        android:layout_marginHorizontal="36dp"
+        android:layout_marginBottom="16dp"
+        android:maxLines="1"
+        android:gravity="center"
+        />
+
+    <Button
+        android:id="@+id/button_sauvegarder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/button_radius"
+        android:text="@string/button_sauvegarder"/>
+
+    <Button
+        android:id="@+id/button_annuler"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/button_radius"
+        android:layout_margin="16dp"
+        android:text="@string/button_annuler"/>
+
+</LinearLayout>

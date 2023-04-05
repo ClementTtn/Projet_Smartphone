@@ -12,10 +12,10 @@ import android.util.Log
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.EditText
-import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.projet_smartphone.databinding.TrajectoryAddActivityBinding
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -24,15 +24,19 @@ import com.google.android.gms.maps.GoogleMap.OnMarkerDragListener
 import com.google.android.gms.maps.model.*
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.*
+import kotlin.math.*
 
 class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback, OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: TrajectoryAddActivityBinding
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
-    private val positions : ArrayList<Marker> = ArrayList()
-    private val polylines : ArrayList<Polyline> = ArrayList()
+    private var points : ArrayList<Point> = ArrayList()
+    private val trajectoires : ArrayList<Trajectoire> = ArrayList()
+    private lateinit var lastMarker : Marker
     private var locationPermissionGranted = false
     private var lastKnownLocation: Location? = null
     private val DEFAULT_ZOOM = 14
@@ -64,7 +68,7 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
 
         val saveButton = findViewById<Button>(R.id.buttonSauvegarder)
         saveButton.setOnClickListener{
-            if(positions.size > 1){
+            if(points.size > 1){
                 // Création de la popup de sauvegarder de la trajectoire
                 val dialogBuilder = AlertDialog.Builder(this)
                 val inflater = this.layoutInflater
@@ -80,8 +84,8 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
 
                     // Transformation des markers en points
                     val points : ArrayList<Point> = ArrayList()
-                    for (i in 0 until positions.size ){
-                        points.add(Point(positions[i].position,"",i+1))
+                    for (i in 0 until points.size ){
+                        points.add(Point(points[i].latLng,"",i+1))
                     }
 
                     val gson = Gson()
@@ -111,7 +115,6 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
                     val fileName = editText.text.toString()
 
                     try {
-                        var points = ArrayList<Point>()
                         val fileInputStream = openFileInput(fileName)
                         val inputStreamReader = InputStreamReader(fileInputStream)
                         val bufferedReader = BufferedReader(inputStreamReader)
@@ -128,7 +131,7 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
                         val gson = Gson()
                         val type = object : TypeToken<ArrayList<Point>>() {}.type
                         points = gson.fromJson(json, type)
-                        redrawMap(points)
+                        redrawMap()
                     } catch (e: FileNotFoundException) {
                         e.printStackTrace()
                     } catch (e: IOException) {
@@ -152,9 +155,25 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
             }
         }
 
+        // Lancement de la trajectoire
         val lancerButton = findViewById<Button>(R.id.buttonLancer)
         lancerButton.setOnClickListener{
-            // Lancement de la trajectoire
+            for (i in 0 until points.size -1){
+                val positionDebut = points[i].latLng
+                val positionFin = points[i+1].latLng
+
+                val positionsTrajectoire = getCoordinates(positionDebut,positionFin)
+                val marker = mMap.addMarker(MarkerOptions()
+                    .position(positionsTrajectoire[0]))
+
+                lifecycleScope.launch {
+                    for (j in 1 until positionsTrajectoire.size) {
+                        marker!!.position = positionsTrajectoire[j]
+                        delay(25)
+                    }
+                }
+
+            }
         }
 
     }
@@ -189,36 +208,72 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
         // Get the current location of the device and set the position of the map.
         getDeviceLocation()
 
+        mMap.setOnPolylineClickListener { polyline ->
+
+            val pointDebut = polyline.points.first()
+            val pointFin = polyline.points.last()
+            var trajectoire : Trajectoire? = null
+
+            for (i in 0 until trajectoires.size) {
+                trajectoire = trajectoires[i]
+                if(trajectoire.positionDebut.position.longitude == pointDebut.latitude && trajectoire.positionDebut.position.longitude == pointDebut.longitude
+                    && trajectoire.positionFin.position.latitude == pointFin.latitude && trajectoire.positionFin.position.longitude == pointFin.longitude)
+                {
+                    break
+                }
+            }
+
+            // Création de la popup speed
+            val dialogBuilder = AlertDialog.Builder(this)
+            val inflater = this.layoutInflater
+            val dialogView = inflater.inflate(R.layout.popup_speed_trajectory, null)
+            val speedEdit = dialogView.findViewById<EditText>(R.id.edit_speed)
+            dialogBuilder.setView(dialogView)
+            val dialog = dialogBuilder.create()
+
+            speedEdit.setText(trajectoire!!.getVitesse().toString())
+
+            val boutonSauvegarder = dialogView.findViewById<Button>(R.id.button_sauvegarder)
+            boutonSauvegarder.setOnClickListener{
+                trajectoire.setVitesse(speedEdit.text.toString().toDouble())
+                dialog.dismiss()
+            }
+
+            val boutonAnnuler = dialogView.findViewById<Button>(R.id.button_annuler)
+            boutonAnnuler.setOnClickListener{
+                dialog.dismiss()
+            }
+
+            dialog.show()
+        }
+
         // Ajouter d'un draglistener sur le marqueur
         mMap.setOnMarkerDragListener(object : OnMarkerDragListener {
             override fun onMarkerDragStart(marker: Marker) {}
             override fun onMarkerDrag(marker: Marker) {}
             override fun onMarkerDragEnd(marker: Marker) {
 
-                // Mise à jour des polylines
-                for (i in 0 until positions.size) {
-                    val markerList = positions[i]
+                for (i in 0 until trajectoires.size) {
 
-                    // Recherche du marker modifié
-                    if(markerList == marker){
+                    if(trajectoires[i].positionDebut == marker){
 
-                        // Mise à jour des polylines, suppresion et création
-                        if( i > 0){
-                            polylines[i-1].remove()
-                            polylines[i-1] = addPolyline(positions[i-1].position,marker.position)
-                            if(polylines.size > i){
-                                polylines[i].remove()
-                                polylines[i] = addPolyline(marker.position,positions[i+1].position)
-                            }
+                        if(i > 0){
+                            trajectoires[i].polyline.remove()
+                            trajectoires[i].polyline = addPolyline(trajectoires[i].positionDebut.position,trajectoires[i].positionFin.position)
+                            trajectoires[i-1].polyline.remove()
+                            trajectoires[i-1].polyline = addPolyline(trajectoires[i-1].positionDebut.position,trajectoires[i-1].positionFin.position)
                             break
                         }
                         else{
-                            if(polylines.size > i){
-                                polylines[i].remove()
-                                polylines[i] = addPolyline(marker.position,positions[i+1].position)
-                            }
-                            break
+                            trajectoires[i].polyline.remove()
+                            trajectoires[i].polyline = addPolyline(trajectoires[i].positionDebut.position,trajectoires[i].positionFin.position)
+
                         }
+
+                    }
+                    else if( i == trajectoires.size-1 && trajectoires[i].positionFin == marker){
+                        trajectoires[i].polyline.remove()
+                        trajectoires[i].polyline = addPolyline(trajectoires[i].positionDebut.position,trajectoires[i].positionFin.position)
                     }
                 }
 
@@ -229,13 +284,16 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
         mMap.setOnMapClickListener { latLng ->
 
             // Ajout d'un marqueur à la position du clic et l'ajouter à la liste
-            positions.add(addMarker(latLng,positions.size))
+            val point = Point(latLng,"",points.size)
+            val marker = addMarker(latLng,point.numero)
 
             // Ajout du polyline reliant les marqueurs, si il y a plus d'un marqueur
-            if(positions.size > 1){
-                val lastPosition = positions[positions.size - 2].position
-                polylines.add(addPolyline(lastPosition,latLng))
+            if(points.size > 0){
+                val polyline = addPolyline(lastMarker.position,latLng)
+                trajectoires.add(Trajectoire(lastMarker,marker,polyline))
             }
+            lastMarker = marker
+            points.add(point)
         }
 
         // Définir une position de départ pour la caméra
@@ -244,17 +302,15 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
         mMap.moveCamera(CameraUpdateFactory.newLatLng(coord))
     }
 
-    private fun redrawMap(points : ArrayList<Point>){
-        mMap.clear()
-        positions.clear()
-        polylines.clear()
+    private fun redrawMap(){
 
-        for(i in 0 until points.size){
+        // On remets à la map et les polylines
+        mMap.clear()
+
+        // On retrace les polylines
+        for(i in 1 until points.size){
             val point = points[i]
-            positions.add(addMarker(point.latLng,point.numero-1))
-            if( i > 0){
-                polylines.add(addPolyline(points[i-1].latLng,point.latLng))
-            }
+            //addPolyline(points[i-1].latLng,point.latLng)
         }
     }
 
@@ -268,6 +324,7 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
                 .width(30f)
                 .startCap(RoundCap())
                 .endCap(RoundCap())
+                .clickable(true)
         )
     }
 
@@ -276,6 +333,31 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
             .position(position)
             .title("Numéro ${numero+1}")
             .draggable(true))!!
+    }
+
+    fun getCoordinates(pointA : LatLng, pointB : LatLng): List<LatLng> {
+        val latA = pointA.latitude
+        val longA = pointA.longitude
+        val latB = pointB.latitude
+        val longB = pointB.longitude
+
+        val R = 6371
+        val dLat = Math.toRadians(latB - latA)
+        val dLong = Math.toRadians(longB - longA)
+        val a = sin(dLat / 2).pow(2) + cos(Math.toRadians(latA)) * cos(Math.toRadians(latB)) * sin(dLong / 2).pow(2)
+        val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+        val d = R * c
+
+        val stepSize = 0.001 // à changer si besoin de plus de points à revoir à la baisse
+        val numSteps = (d / stepSize).toInt()
+        val latStep = (latB - latA) / numSteps
+        val longStep = (longB - longA) / numSteps
+
+        val coordinates = (0..numSteps).map { i ->
+            LatLng(latA + i * latStep, longA + i * longStep)
+        }
+
+        return coordinates
     }
 
     @SuppressLint("MissingPermission")

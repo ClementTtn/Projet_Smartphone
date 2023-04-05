@@ -3,6 +3,7 @@
     <string name="title_activity_trajectory_add">Création d\'une trajectoire</string>
     <string name="title_activity_maps">Pilote du drone</string>
     <string name="title_popup_save">Nom de la trajectoire :</string>
+    <string name="title_popup_speed">Vitesse de la trajectoire en Knots : </string>
     <string name="button_lancer">Lancer</string>
     <string name="button_sauvegarder">Sauvegarder</string>
     <string name="button_annuler">Annuler</string>
