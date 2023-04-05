@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.graphics.*
 import android.location.Location
@@ -175,6 +176,9 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
 
             }
         }
+
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
 
     }
 
