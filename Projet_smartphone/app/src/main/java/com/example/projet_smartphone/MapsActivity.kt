@@ -1,5 +1,7 @@
 package com.example.projet_smartphone
 
+import android.app.Activity
+import android.content.Intent
 import android.graphics.Color
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -89,33 +91,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        var trameNMEA = "\$GPRMC,104339.271,A,4609.055502,N,00110.158403,W,0.0,114.4,300323,,,*33\n" +
-                "\$IIVHW,114.4,T,114.4,M,0.0,N,0.0,K*55\n" +
-                "\$GPVTG,114.4,T,114.4,M,0.0,N,0.0,K*4E\n" +
-                "\$IIHDT,114.4,T*22\n" +
-                "\$GPGLL,4609.055502,N,00110.158403,W,104339.271,A*29\n" +
-                "\$GPGGA,104339.271,4609.055502,N,00110.158403,W,1,4,0.6,2.0,M,,,,*22\n" +
-                "\$GPGSA,A,3,8,11,15,22,,,,,,,,,3.3,0.6,0.6*0E\n" +
-                "\$GPZDA,104339.271,30,03,2023,02,00*5F\n" +
-                "\$IIVBW,-0.3,-0.3,A,-0.3,-0.2,A,-0.1,A,-0.7,A*44\n" +
-                "!AIVDO,1,1,,A,17PaewhP00wraKPJJ6>lMkU>0000,0*6F\n" +
-                "!AIVDM,1,1,,A,17PaewhP00wraKPJJ6>lMkU>0000,0*6D\n" +
-                "\$WIMWD,9.2,T,9.2,M,2.0,N,1.0,M*59\n" +
-                "\$WIMWV,254.9,R,2.0,N,A*2B\n" +
-                "\$IIMTW,13.2,C*13\n" +
-                "\$SDDPT,1.7,0.3*52\n" +
-                "\$SDDBT,5.4,f,1.7,M,0.9,F*08\n" +
-                "\$INWPL,4609.055502,N,00110.158403,W,wpt*3D\n" +
-                "!AIVDO,2,1,9,A,57Paewh00001<To7;?@plD5<Tl0000000000000U1@:550w:c2TnA3QF,0*26\n" +
-                "!AIVDO,2,2,9,A,@00000000000002,2*5D\n" +
-                "!AIVDM,2,1,9,A,57Paewh00001<To7;?@plD5<Tl0000000000000U1@:550w:c2TnA3QF,0*24\n" +
-                "!AIVDM,2,2,9,A,@00000000000002,2*5F\n" +
-                "\$IIRPM,E,1,0,10.5,A*7C\n" +
-                "\$IIRPM,E,2,0,10.5,A*7F"
+        val extras = intent.extras
+        if (extras != null) {
+            drone = extras.getParcelable<Drone>("drone_object")!!
+            // Do something with the Drone object
+        }
 
-        // Add a marker in Sydney and move the camera
-        drone = Drone("Mon drone")
-        drone.parseNMEA(trameNMEA)
         positionDrone = drone.positionActuel.latLng
 
         DroneMarkeur = mMap.addMarker(MarkerOptions().position(positionDrone).title(drone.nom))!!
@@ -192,6 +173,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {
+                val intent = Intent()
+                intent.putExtra("drone_object", drone)
+                setResult(Activity.RESULT_OK, intent)
                 finish()
                 return true
             }
