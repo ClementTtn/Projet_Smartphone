@@ -16,7 +16,6 @@ import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
 import com.example.projet_smartphone.databinding.TrajectoryAddActivityBinding
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -135,18 +134,41 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
         // Lancement de la trajectoire
         val lancerButton = findViewById<Button>(R.id.buttonLancer)
         lancerButton.setOnClickListener {
+            // Lancement de la trajectoire
             GlobalScope.launch(Dispatchers.Main) {
                 for (i in 0 until trajectoires.size) {
-                    val positionDebut = trajectoires[i].positionDebut.position
-                    val positionFin = trajectoires[i].positionFin.position
 
-                    val positionsTrajectoire = getCoordinates(positionDebut, positionFin, trajectoires[i].getVitesse())
-                    val marker = mMap.addMarker(MarkerOptions().position(positionsTrajectoire[0]))
+                    // Calcul des points de la trajectoire
+                    val positionsTrajectoire = trajectoires[i].getCoordinates()
 
+                    // Remise de l'orientation de la map au nord
+                    val currentLatLng = mMap.cameraPosition.target
+                    val currentZoomLevel = mMap.cameraPosition.zoom
+                    val newCameraPosition = CameraPosition.Builder()
+                        .target(currentLatLng)
+                        .zoom(currentZoomLevel)
+                        .bearing(0f) // réinitialise l'orientation à 0
+                        .build()
+                    val cameraUpdate = CameraUpdateFactory.newCameraPosition(newCameraPosition)
+                    mMap.moveCamera(cameraUpdate)
+
+                    //
+                    val originalBitmap = BitmapFactory.decodeResource(resources, R.drawable.waverider)
+                    val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, 125, 125, false)
+                    val markerIcon = BitmapDescriptorFactory.fromBitmap(scaledBitmap)
+
+                    // Mouvement du marker du drone
+                    val marker = mMap.addMarker(MarkerOptions()
+                        .position(positionsTrajectoire[0])
+                        .icon(markerIcon)
+                        .rotation(trajectoires[i].getDirection())
+                        .anchor(0.5f,0.5f)
+                    )
                     for (j in 1 until positionsTrajectoire.size) {
                         delay(33) // Attendre 33 ms avant la prochaine itération
                         marker!!.position = positionsTrajectoire[j]
                     }
+                    marker!!.remove()
                 }
             }
         }
@@ -308,35 +330,6 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
             .position(position)
             .title("Numéro ${numero+1}")
             .draggable(true))!!
-    }
-
-    fun getCoordinates(pointA: LatLng, pointB: LatLng, vitesseKnots: Double): List<LatLng> {
-        val R = 6371
-        val latA = Math.toRadians(pointA.latitude)
-        val longA = Math.toRadians(pointA.longitude)
-        val latB = Math.toRadians(pointB.latitude)
-        val longB = Math.toRadians(pointB.longitude)
-
-        val dLat = latB - latA
-        val dLong = longB - longA
-
-        val a = sin(dLat / 2).pow(2) + cos(latA) * cos(latB) * sin(dLong / 2).pow(2)
-        val c = 2 * atan2(sqrt(a), sqrt(1 - a))
-        val d = R * c
-
-        val vitesseKmh = vitesseKnots * 1.852
-        val intervalleTemps = 33 // intervalle de temps en ms pour afficher 30 points par seconde
-        val tempsGlobal = d / vitesseKmh * 3600 * 1000 // temps en ms
-        val nombrePoints = (tempsGlobal / intervalleTemps).toInt() // distance parcourue en nm pendant l'intervalle de temps
-
-        val latStep = dLat / nombrePoints
-        val longStep = dLong / nombrePoints
-
-        return (0..nombrePoints).map { i ->
-            val lat = Math.toDegrees(latA + i * latStep)
-            val long = Math.toDegrees(longA + i * longStep)
-            LatLng(lat, long)
-        }
     }
 
     @SuppressLint("MissingPermission")
