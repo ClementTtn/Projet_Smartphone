@@ -215,10 +215,11 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
             var trajectoire : Trajectoire? = null
 
             for (i in 0 until trajectoires.size) {
-                trajectoire = trajectoires[i]
-                if(trajectoire.positionDebut.position.longitude == pointDebut.latitude && trajectoire.positionDebut.position.longitude == pointDebut.longitude
-                    && trajectoire.positionFin.position.latitude == pointFin.latitude && trajectoire.positionFin.position.longitude == pointFin.longitude)
+                val trajectoireRecherche = trajectoires[i]
+                if(trajectoireRecherche.positionDebut.position.latitude == pointDebut.latitude && trajectoireRecherche.positionDebut.position.longitude == pointDebut.longitude
+                    && trajectoireRecherche.positionFin.position.latitude == pointFin.latitude && trajectoireRecherche.positionFin.position.longitude == pointFin.longitude)
                 {
+                    trajectoire = trajectoires[i]
                     break
                 }
             }
