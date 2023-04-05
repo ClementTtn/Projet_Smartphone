@@ -12,6 +12,8 @@ import android.view.MenuItem
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import android.content.pm.ActivityInfo
+import android.widget.Button
+import android.widget.ImageButton
 import android.widget.TextView
 
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -89,36 +91,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        val point1 = Point(LatLng(48.8566, 2.3522), "red", 1)
-        val point2 = Point(LatLng(48.8600, 2.3500), "blue", 2)
-        val point3 = Point(LatLng(48.8640, 2.3480), "green", 3)
-        val point4 = Point(LatLng(48.8680, 2.3460), "yellow", 4)
-        val point5 = Point(LatLng(48.8720, 2.3440), "purple", 5)
-
-
-
-        val trajectoire = Trajectoire("Trajectoire 1", listOf(point1, point2, point3, point4, point5))
-        val fileName = "drone_trajectory.gpx"
-
-        try {
-            trajectoire.saveGPXFile(this, fileName)
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-
-
-        val file = File(this.filesDir, fileName)
-
-        try {
-            val gpxContent = file.readText()
-            println("======================================\n\n\nContenu du fichier GPX : \n$gpxContent")
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-
-
-
-
 
         var trameNMEA = "\$GPRMC,104339.271,A,4609.055502,N,00110.158403,W,0.0,114.4,300323,,,*33\n" +
                 "\$IIVHW,114.4,T,114.4,M,0.0,N,0.0,K*55\n" +
@@ -154,6 +126,30 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
         val zoomLevel = 15f
         val Zoom = CameraUpdateFactory.newLatLngZoom(positionDrone, zoomLevel)
         mMap.animateCamera(Zoom)
+
+
+        // Ajout d'un écouteur pour le bouton de zoom plus
+        val zoomInButton = findViewById<ImageButton>(R.id.zoom_in_button)
+        zoomInButton.setOnClickListener {
+            mMap.animateCamera(CameraUpdateFactory.zoomIn())
+        }
+
+        // Ajout d'un écouteur pour le bouton de zoom moins
+        val zoomOutButton = findViewById<ImageButton>(R.id.zoom_out_button)
+        zoomOutButton.setOnClickListener {
+            mMap.animateCamera(CameraUpdateFactory.zoomOut())
+        }
+
+
+        val toggleCameraFollowButton = findViewById<Button>(R.id.toggle_camera_follow)
+        toggleCameraFollowButton.setOnClickListener {
+            cameraFollowsDrone = !cameraFollowsDrone
+            if (cameraFollowsDrone) {
+                toggleCameraFollowButton.text = "Suivi de la caméra"
+            } else {
+                toggleCameraFollowButton.text = "Caméra fixe"
+            }
+        }
 
         setUpSensorStuff()
         startMarkerRefresh()
@@ -198,26 +194,36 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
 
     private lateinit var marker: Marker
     private val handler = Handler()
+    private var cameraFollowsDrone: Boolean = true
+
+
+
+
+
 
     fun startMarkerRefresh() {
-        // Répéter la mise à jour du marqueur toutes les 2 secondes
         handler.postDelayed(object : Runnable {
             override fun run() {
                 // Mettre à jour la position du marqueur
-                var vitesse = vitesseMAX*accelerometerValues[1]
+                var vitesse = vitesseMAX * accelerometerValues[1]
                 positionDrone = updateLatLng(positionDrone, accelerometerValues[0], vitesse)
                 vitesse = vitesse * 0.53996
-                System.out.println(drone.genereTrameNMEA(positionDrone.latitude,positionDrone.latitude,vitesse))
+                System.out.println(drone.genereTrameNMEA(positionDrone.latitude, positionDrone.latitude, vitesse))
 
                 val speedTextView = findViewById<TextView>(R.id.speed_text)
-                speedTextView.text = "${round(vitesse*10)/10} knots"
+                speedTextView.text = "${round(vitesse * 10) / 10} knots"
 
                 DroneMarkeur.position = positionDrone
 
+                if (cameraFollowsDrone) {
+                    mMap.animateCamera(CameraUpdateFactory.newLatLng(positionDrone))
+                }
+
                 handler.postDelayed(this, 1000)
             }
-        }, 1000)
+        }, 2500)
     }
+
 
     // Retour au menu principale
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -229,16 +235,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
         }
         return super.onOptionsItemSelected(item)
     }
-
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
 
 
 
