@@ -91,12 +91,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
+
         val extras = intent.extras
         if (extras != null) {
             drone = extras.getParcelable<Drone>("drone_object")!!
-            // Do something with the Drone object
-        }
 
+        }
         positionDrone = drone.positionActuel.latLng
 
         DroneMarkeur = mMap.addMarker(MarkerOptions().position(positionDrone).title(drone.nom))!!
@@ -104,6 +104,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
         val zoomLevel = 15f
         val Zoom = CameraUpdateFactory.newLatLngZoom(positionDrone, zoomLevel)
         mMap.animateCamera(Zoom)
+
+
 
         setUpSensorStuff()
         startMarkerRefresh()
@@ -145,6 +147,21 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
         sensorManager.unregisterListener(this)
         super.onDestroy()
     }
+    fun onDestroyMap() {
+        val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as? SupportMapFragment
+        mapFragment?.let {
+            supportFragmentManager
+                .beginTransaction()
+                .remove(it)
+                .commit()
+        }
+    }
+
+    fun resendData(){
+        val intent = Intent(this@MapsActivity, MainActivity::class.java)
+        intent.putExtra("drone_object", drone)
+        setResult(Activity.RESULT_OK, intent)
+    }
 
     private lateinit var marker: Marker
     private val handler = Handler()
@@ -156,9 +173,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
                 // Mettre à jour la position du marqueur
                 var vitesse = vitesseMAX*accelerometerValues[1]
                 positionDrone = updateLatLng(positionDrone, accelerometerValues[0], vitesse)
-                System.out.println(drone.genereTrameNMEA(positionDrone.latitude,positionDrone.latitude,vitesse))
+                //System.out.println(drone.genereTrameNMEA(positionDrone.latitude,positionDrone.latitude,vitesse))
 
                 DroneMarkeur.position = positionDrone
+                drone.positionActuel.latLng = positionDrone
 
                 val speedTextView = findViewById<TextView>(R.id.speed_text)
                 speedTextView.text = "${round(vitesse)} km/h"
@@ -171,17 +189,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
 
     // Retour au menu principale
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
+        return when (item.itemId) {
             android.R.id.home -> {
-                val intent = Intent()
-                intent.putExtra("drone_object", drone)
-                setResult(Activity.RESULT_OK, intent)
+                onDestroyMap()
+                resendData()
                 finish()
-                return true
+                true
             }
+            else -> super.onOptionsItemSelected(item)
         }
-        return super.onOptionsItemSelected(item)
     }
+
 
     /**
      * Manipulates the map once available.

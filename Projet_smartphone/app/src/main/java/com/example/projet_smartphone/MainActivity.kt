@@ -6,6 +6,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.widget.Button
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 
@@ -54,33 +55,26 @@ class MainActivity : AppCompatActivity() {
         }
         window.statusBarColor = Color.TRANSPARENT
 
+
+
         val boutonDrone = findViewById<Button>(R.id.button_drone)
+        val myActivityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                drone = result.data?.extras?.getParcelable<Drone>("drone_object")!!
+                isFirstStart = false
+        }
         boutonDrone.setOnClickListener(){
-            print(drone.positionActuel)
             val intent = Intent(this@MainActivity, MapsActivity::class.java)
             intent.putExtra("drone_object", drone)
-            startActivityForResult(intent, REQUEST_CODE)
+            myActivityResultLauncher.launch(intent)
         }
+
 
         val boutonTrajectory = findViewById<Button>(R.id.button_trajectory)
         boutonTrajectory.setOnClickListener{
             val intent = Intent(this@MainActivity, trajectoryAddActivity::class.java)
-
             startActivity(intent)
         }
 
         val boutonMyTrajectory = findViewById<Button>(R.id.button_mytrajectory)
     }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            drone = data?.extras?.getParcelable<Drone>("drone_object")!!
-            isFirstStart = false
-
-            // Use the value as needed
-        }
-    }
-
-
 }
