@@ -22,7 +22,7 @@ data class Point(var latLng: LatLng, val couleur: String, val numero: Int) : Par
 
     companion object CREATOR : Parcelable.Creator<Point> {
         override fun createFromParcel(parcel: Parcel): Point {
-            val latLng = parcel.readParcelable<LatLng>(LatLng::class.java.classLoader) ?: LatLng(0.0, 0.0)
+            val latLng = parcel.readParcelable(LatLng::class.java.classLoader) ?: LatLng(0.0, 0.0)
             val couleur = parcel.readString() ?: ""
             val numero = parcel.readInt()
             return Point(latLng, couleur, numero)

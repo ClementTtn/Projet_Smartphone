@@ -1,5 +1,6 @@
 package com.example.projet_smartphone
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.graphics.Color
@@ -13,7 +14,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var drone : Drone
     private var isFirstStart = true
-    var trameNMEA = "\$GPRMC,104339.271,A,4609.055502,N,00110.158403,W,0.0,114.4,300323,,,*33\n" +
+    private var trameNMEA = "\$GPRMC,104339.271,A,4609.055502,N,00110.158403,W,0.0,114.4,300323,,,*33\n" +
             "\$IIVHW,114.4,T,114.4,M,0.0,N,0.0,K*55\n" +
             "\$GPVTG,114.4,T,114.4,M,0.0,N,0.0,K*4E\n" +
             "\$IIHDT,114.4,T*22\n" +
@@ -37,6 +38,7 @@ class MainActivity : AppCompatActivity() {
             "\$IIRPM,E,1,0,10.5,A*7C\n" +
             "\$IIRPM,E,2,0,10.5,A*7F"
 
+    @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -57,10 +59,10 @@ class MainActivity : AppCompatActivity() {
 
         val boutonDrone = findViewById<Button>(R.id.button_drone)
         val myActivityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            drone = result.data?.extras?.getParcelable<Drone>("drone_object")!!
+            drone = result.data?.extras?.getParcelable("drone_object")!!
             isFirstStart = false
         }
-        boutonDrone.setOnClickListener(){
+        boutonDrone.setOnClickListener{
             val intent = Intent(this@MainActivity, MapsActivity::class.java)
             intent.putExtra("drone_object", drone)
             myActivityResultLauncher.launch(intent)

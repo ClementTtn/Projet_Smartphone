@@ -32,7 +32,7 @@ class Trajectoire(val positionDebut : Marker, val positionFin : Marker, var poly
     }
 
     fun getCoordinates(): List<LatLng> {
-        val R = 6371
+        val r = 6371
         val latA = Math.toRadians(this.positionDebut.position.latitude)
         val longA = Math.toRadians(this.positionDebut.position.longitude)
         val latB = Math.toRadians(this.positionFin.position.latitude)
@@ -43,7 +43,7 @@ class Trajectoire(val positionDebut : Marker, val positionFin : Marker, var poly
 
         val a = sin(dLat / 2).pow(2) + cos(latA) * cos(latB) * sin(dLong / 2).pow(2)
         val c = 2 * atan2(sqrt(a), sqrt(1 - a))
-        val d = R * c
+        val d = r * c
 
         val vitesseKmh = this.vitesse * 1.852
         val intervalleTemps = 33 // intervalle de temps en ms pour afficher 30 points par seconde

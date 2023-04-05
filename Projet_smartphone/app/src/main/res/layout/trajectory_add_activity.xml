@@ -32,6 +32,7 @@
         android:text="@string/button_lancer"
         android:textSize="16sp"
         android:gravity="center"
+        android:textAllCaps="false"
         />
 
     <Button
@@ -49,6 +50,7 @@
         android:text="@string/button_sauvegarder"
         android:textSize="16sp"
         android:gravity="center"
+        android:textAllCaps="false"
         />
 
 

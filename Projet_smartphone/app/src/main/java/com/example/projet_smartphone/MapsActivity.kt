@@ -26,9 +26,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.example.projet_smartphone.databinding.ActivityMapsBinding
 import com.google.android.gms.maps.model.Marker
-import java.io.File
-import java.io.IOException
-import kotlin.math.round
+import kotlin.math.*
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListener {
@@ -36,7 +34,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
     private lateinit var sensorManager: SensorManager
-    private lateinit var DroneMarkeur: Marker
+    private lateinit var droneMarkeur: Marker
     private lateinit var drone : Drone
     private lateinit var positionDrone : LatLng
     var accelerometerValues = Array(2) { 0.0 }
@@ -48,12 +46,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
         val lat1 = Math.toRadians(currentLatLng.latitude)
         val lon1 = Math.toRadians(currentLatLng.longitude)
 
-        val R = 6371.0 // Earth radius in km
+        val r = 6371.0 // Earth radius in km
 
-        val lat2 = Math.asin(Math.sin(lat1) * Math.cos(distance/R) + Math.cos(lat1) * Math.sin(distance/R) * Math.cos(
+        val lat2 = asin(
+            sin(lat1) * cos(distance/r) + cos(lat1) * sin(distance/r) * cos(
             direction
-        ))
-        val lon2 = lon1 + Math.atan2(Math.sin(direction) * Math.sin(distance/R) * Math.cos(lat1), Math.cos(distance/R) - Math.sin(lat1) * Math.sin(lat2))
+        )
+        )
+        val lon2 = lon1 + atan2(sin(direction) * sin(distance/r) * cos(lat1), cos(distance/r) - sin(lat1) * sin(lat2))
 
         val updatedLat = Math.toDegrees(lat2)
         val updatedLng = Math.toDegrees(lon2)
@@ -115,16 +115,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
 
         val extras = intent.extras
         if (extras != null) {
-            drone = extras.getParcelable<Drone>("drone_object")!!
+            drone = extras.getParcelable("drone_object")!!
 
         }
         positionDrone = drone.positionActuel.latLng
 
-        DroneMarkeur = mMap.addMarker(MarkerOptions().position(positionDrone).title(drone.nom))!!
+        droneMarkeur = mMap.addMarker(MarkerOptions().position(positionDrone).title(drone.nom))!!
         mMap.moveCamera(CameraUpdateFactory.newLatLng(positionDrone))
         val zoomLevel = 15f
-        val Zoom = CameraUpdateFactory.newLatLngZoom(positionDrone, zoomLevel)
-        mMap.animateCamera(Zoom)
+        val zoom = CameraUpdateFactory.newLatLngZoom(positionDrone, zoomLevel)
+        mMap.animateCamera(zoom)
 
 
         // Ajout d'un écouteur pour le bouton de zoom plus
@@ -144,9 +144,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
         toggleCameraFollowButton.setOnClickListener {
             cameraFollowsDrone = !cameraFollowsDrone
             if (cameraFollowsDrone) {
-                toggleCameraFollowButton.text = "Suivi de la caméra"
+                toggleCameraFollowButton.text = getString(R.string.button_camera_suivi)
             } else {
-                toggleCameraFollowButton.text = "Caméra fixe"
+                toggleCameraFollowButton.text = getString(R.string.button_camera_fixe)
             }
         }
 
@@ -159,7 +159,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
 
         // Specify the sensor you want to listen to
-        val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.also { accelerometer ->
+        sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.also { accelerometer ->
             sensorManager.registerListener(
                 this,
                 accelerometer,
@@ -174,8 +174,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
         if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
             val xValue = event.values[0]*-1
             val yValue = event.values[1]
-            val radianAngle = Math.atan2(yValue.toDouble(), xValue.toDouble())
-            val vitesse = Math.sqrt((xValue*xValue + yValue*yValue).toDouble()/10)
+            val radianAngle = atan2(yValue.toDouble(), xValue.toDouble())
+            val vitesse = sqrt((xValue*xValue + yValue*yValue).toDouble()/10)
 
             accelerometerValues = arrayOf(radianAngle,vitesse)
 
@@ -186,11 +186,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
         return
     }
 
-    override fun onDestroy() {
-        sensorManager.unregisterListener(this)
-        super.onDestroy()
-    }
-    fun onDestroyMap() {
+    private fun onDestroyMap() {
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as? SupportMapFragment
         mapFragment?.let {
             supportFragmentManager
@@ -200,34 +196,32 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
         }
     }
 
-    fun resendData(){
+    private fun resendData(){
         val intent = Intent(this@MapsActivity, MainActivity::class.java)
         intent.putExtra("drone_object", drone)
         setResult(Activity.RESULT_OK, intent)
     }
 
-    private lateinit var marker: Marker
     private val handler = Handler()
     private var cameraFollowsDrone: Boolean = true
 
 
-
-
-
-
-    fun startMarkerRefresh() {
+    private fun startMarkerRefresh() {
         handler.postDelayed(object : Runnable {
             override fun run() {
                 // Mettre à jour la position du marqueur
                 var vitesse = vitesseMAX * accelerometerValues[1]
                 positionDrone = updateLatLng(positionDrone, accelerometerValues[0], vitesse)
-                vitesse = vitesse * 0.53996
-                System.out.println(drone.genereTrameNMEA(positionDrone.latitude, positionDrone.latitude, vitesse))
+                vitesse *= 0.53996
+                println(drone.genereTrameNMEA(positionDrone.latitude, positionDrone.latitude, vitesse))
 
                 val speedTextView = findViewById<TextView>(R.id.speed_text)
-                speedTextView.text = "${round(vitesse * 10) / 10} knots"
+                speedTextView.text = buildString {
+                    append((round(vitesse * 10) / 10))
+                    append(" knots")
+                }
 
-                DroneMarkeur.position = positionDrone
+                droneMarkeur.position = positionDrone
 
                 if (cameraFollowsDrone) {
                     mMap.animateCamera(CameraUpdateFactory.newLatLng(positionDrone))

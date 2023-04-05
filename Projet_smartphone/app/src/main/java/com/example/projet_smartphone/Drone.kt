@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import android.os.Parcel
 import android.os.Parcelable
+import kotlin.math.abs
 
 class Drone(val nom: String) : Parcelable {
 
@@ -27,7 +28,7 @@ class Drone(val nom: String) : Parcelable {
     companion object CREATOR : Parcelable.Creator<Drone> {
         override fun createFromParcel(parcel: Parcel): Drone {
             val nom = parcel.readString() ?: ""
-            val positionActuel = parcel.readParcelable<Point>(Point::class.java.classLoader) ?: Point(LatLng(0.0,0.0), "bleu", 0)
+            val positionActuel = parcel.readParcelable(Point::class.java.classLoader) ?: Point(LatLng(0.0,0.0), "bleu", 0)
             val vitesse = parcel.readValue(Double::class.java.classLoader) as? Double
             val angle = parcel.readValue(Double::class.java.classLoader) as? Double
             return Drone(nom).apply {
@@ -92,7 +93,7 @@ class Drone(val nom: String) : Parcelable {
         val angleTraj = String.format(Locale.US, "%.2f", this.angle!!)
         val date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("ddMMyy"))
 
-        System.out.println("Trame NMEA :")
+        println("Trame NMEA :")
         return "\$GPRMC,${date}000000,A,$latitude,N,$longitude,E,$vitesseKnots,$angleTraj,$date,0.0,E,A"
     }
 
@@ -103,8 +104,8 @@ class Drone(val nom: String) : Parcelable {
     }
 
     private fun formatLongitude(longitude: Double): String {
-        val degrees = Math.abs(longitude.toInt()).toString().padStart(3, '0')
-        val minutes = String.format(Locale.US, "%.4f", (Math.abs(longitude) - Math.abs(longitude.toInt())).times(60))
+        val degrees = abs(longitude.toInt()).toString().padStart(3, '0')
+        val minutes = String.format(Locale.US, "%.4f", (abs(longitude) - abs(longitude.toInt())).times(60))
         val direction = if (longitude < 0) "W" else "E"
         return "$degrees$minutes,$direction"
     }

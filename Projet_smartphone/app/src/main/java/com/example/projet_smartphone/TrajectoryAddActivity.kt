@@ -45,6 +45,7 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
     private val DEFAULT_ZOOM = 14
     private val PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1
 
+    @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -303,7 +304,7 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
 
     private fun redrawMap(nomFichier : String){
 
-        // On remets à la map et les polylines
+        // On efface la map
         mMap.clear()
 
         try {
@@ -342,6 +343,8 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
             }
             lastMarker = marker
         }
+
+
     }
 
     private fun addPolyline(startPosition : LatLng, endPosition: LatLng) : Polyline {

@@ -26,8 +26,7 @@ class ManagedTrajec : AppCompatActivity() {
 
         val list = arrayListOf<String>()
         val files = applicationContext.filesDir.listFiles { file -> file.name.endsWith(".traj") }
-        for (file in files) {
-            print("File ${file.nameWithoutExtension}\n")
+        for (file in files!!) {
             list.add(file.nameWithoutExtension)
         }
         val listView: ListView = findViewById(R.id._listView)
