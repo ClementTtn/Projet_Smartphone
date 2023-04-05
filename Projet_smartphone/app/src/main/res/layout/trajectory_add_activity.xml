@@ -15,7 +15,7 @@
         map:layout_constraintStart_toStartOf="parent"
         map:layout_constraintTop_toTopOf="parent"
         map:layout_constraintBottom_toTopOf="@id/buttonLancer"
-        tools:context=".trajectoryAddActivity"
+        tools:context=".TrajectoryAddActivity"
         />
 
     <Button

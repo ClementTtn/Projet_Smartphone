@@ -31,9 +31,9 @@
         </activity>
 
         <activity
-            android:name=".managedTrajec"
-            android:exported="true"
-            android:label="Managed Trajectory"/>
+            android:name=".ManagedTrajec"
+            android:exported="false"
+            android:label="@string/title_activity_mytrajectory"/>
 
         <activity
             android:name=".MapsActivity"
@@ -41,7 +41,7 @@
             android:label="@string/title_activity_maps" />
 
         <activity
-            android:name=".trajectoryAddActivity"
+            android:name=".TrajectoryAddActivity"
             android:exported="false"
             android:label="@string/title_activity_trajectory_add" />
     </application>

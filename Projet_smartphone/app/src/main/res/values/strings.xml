@@ -11,4 +11,5 @@
     <string name="main_menu_button_drone">Piloter mon drone</string>
     <string name="main_menu_button_trajectory">Créer une trajectoire</string>
     <string name="main_menu_button_mytrajectory">Mes trajectoires</string>
+    <string name="title_activity_mytrajectory">Mes trajectoires</string>
 </resources>
