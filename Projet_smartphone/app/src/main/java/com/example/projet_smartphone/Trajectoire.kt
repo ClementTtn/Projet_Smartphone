@@ -11,11 +11,24 @@ class Trajectoire(val positionDebut : Marker, val positionFin : Marker, var poly
     private val listePoints: List<Point> = ArrayList()
     private var vitesse: Double = 15.0
 
+    companion object {
+        private var counter = 1
+    }
+
+    val id = counter++
+
+    fun getNom() : String{
+        return this.nom
+    }
     fun getVitesse() : Double{
         return this.vitesse
     }
     fun setVitesse(vitesse: Double){
         this.vitesse = vitesse
+    }
+
+    fun getListePoints() : List<Point>{
+        return this.getListePoints()
     }
 
     fun getCoordinates(): List<LatLng> {
