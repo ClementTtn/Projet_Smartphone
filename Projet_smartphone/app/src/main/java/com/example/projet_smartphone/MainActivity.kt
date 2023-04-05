@@ -56,14 +56,11 @@ class MainActivity : AppCompatActivity() {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
         val boutonDrone = findViewById<Button>(R.id.button_drone)
-        boutonDrone.setOnClickListener{
-
-        val boutonDrone = findViewById<Button>(R.id.button_drone)
         val myActivityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-                drone = result.data?.extras?.getParcelable<Drone>("drone_object")!!
-                isFirstStart = false
+            drone = result.data?.extras?.getParcelable<Drone>("drone_object")!!
+            isFirstStart = false
         }
-        boutonDrone.setOnClickListener{
+        boutonDrone.setOnClickListener(){
             val intent = Intent(this@MainActivity, MapsActivity::class.java)
             intent.putExtra("drone_object", drone)
             myActivityResultLauncher.launch(intent)

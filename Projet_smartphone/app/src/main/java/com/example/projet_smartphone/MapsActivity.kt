@@ -171,12 +171,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
                 //System.out.println(drone.genereTrameNMEA(positionDrone.latitude,positionDrone.latitude,vitesse))
 
                 val speedTextView = findViewById<TextView>(R.id.speed_text)
-                speedTextView.text = "${round(vitesse*10)/10} knots"
 
                 DroneMarkeur.position = positionDrone
                 drone.positionActuel.latLng = positionDrone
 
-                val speedTextView = findViewById<TextView>(R.id.speed_text)
                 speedTextView.text = "${round(vitesse)} km/h"
                 // Répéter l'exécution de cette fonction toutes les 2 secondes
 
