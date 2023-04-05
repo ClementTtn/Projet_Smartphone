@@ -12,6 +12,9 @@ import android.view.MenuItem
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import android.content.pm.ActivityInfo
+import android.view.LayoutInflater
+import android.view.View
+import android.widget.TextView
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -21,6 +24,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.example.projet_smartphone.databinding.ActivityMapsBinding
 import com.google.android.gms.maps.model.Marker
+import kotlin.math.round
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListener {
@@ -33,6 +37,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
     private lateinit var positionDrone : LatLng
     var accelerometerValues = Array(2) { 0.0 }
     var vitesseMAX = 10.0
+
 
 
 
@@ -173,6 +178,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
                 System.out.println(drone.genereTrameNMEA(positionDrone.latitude,positionDrone.latitude,vitesse))
 
                 DroneMarkeur.position = positionDrone
+
+                val speedTextView = findViewById<TextView>(R.id.speed_text)
+                speedTextView.text = "${round(vitesse)} km/h"
                 // Répéter l'exécution de cette fonction toutes les 2 secondes
 
                 handler.postDelayed(this, 1000)
