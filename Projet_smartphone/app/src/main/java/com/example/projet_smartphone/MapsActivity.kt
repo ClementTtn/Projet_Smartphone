@@ -12,6 +12,7 @@ import android.view.MenuItem
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import android.content.pm.ActivityInfo
+import android.widget.TextView
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -21,6 +22,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.example.projet_smartphone.databinding.ActivityMapsBinding
 import com.google.android.gms.maps.model.Marker
+import kotlin.math.round
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListener {
@@ -33,6 +35,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
     private lateinit var positionDrone : LatLng
     var accelerometerValues = Array(2) { 0.0 }
     var vitesseMAX = 10.0
+
 
 
 
@@ -141,8 +144,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
     override fun onSensorChanged(event: SensorEvent?) {
         // Checks for the sensor we have registered
         if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
-            val xValue = event.values[0]
-            val yValue = event.values[1]*-1
+            val xValue = event.values[0]*-1
+            val yValue = event.values[1]
             val radianAngle = Math.atan2(yValue.toDouble(), xValue.toDouble())
             val vitesse = Math.sqrt((xValue*xValue + yValue*yValue).toDouble()/10)
 
@@ -170,7 +173,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
                 // Mettre à jour la position du marqueur
                 var vitesse = vitesseMAX*accelerometerValues[1]
                 positionDrone = updateLatLng(positionDrone, accelerometerValues[0], vitesse)
+                vitesse = vitesse * 0.53996
                 System.out.println(drone.genereTrameNMEA(positionDrone.latitude,positionDrone.latitude,vitesse))
+
+                val speedTextView = findViewById<TextView>(R.id.speed_text)
+                speedTextView.text = "${round(vitesse*10)/10} knots"
 
                 DroneMarkeur.position = positionDrone
                 // Répéter l'exécution de cette fonction toutes les 2 secondes

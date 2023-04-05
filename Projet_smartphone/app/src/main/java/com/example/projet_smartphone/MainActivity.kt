@@ -1,6 +1,7 @@
 package com.example.projet_smartphone
 
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.graphics.Color
 import android.os.Bundle
 import android.widget.Button
@@ -33,6 +34,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         val boutonMyTrajectory = findViewById<Button>(R.id.button_mytrajectory)
+
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
 
 
 
