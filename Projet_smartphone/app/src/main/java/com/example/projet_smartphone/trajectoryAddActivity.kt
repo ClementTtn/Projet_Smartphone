@@ -24,7 +24,8 @@ import com.google.android.gms.maps.*
 import com.google.android.gms.maps.GoogleMap.OnMarkerDragListener
 import com.google.android.gms.maps.model.*
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.*
@@ -67,6 +68,9 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
         }
         window.statusBarColor = Color.TRANSPARENT
 
+        // Blocage de la rotation
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
         val saveButton = findViewById<Button>(R.id.buttonSauvegarder)
         saveButton.setOnClickListener{
             if(points.size > 1){
@@ -91,7 +95,7 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
 
                     val gson = Gson()
                     val jsonString = gson.toJson(points)
-                    val fileName : String = editText.text.toString()
+                    val fileName : String = editText.text.toString() + ".traj"
                     val fileOutputStream : FileOutputStream
 
                     try {
@@ -112,36 +116,8 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
 
                 // Fermeture de la popup
                 val bouttonAnnuler = dialogView.findViewById<Button>(R.id.button_annuler)
-                bouttonAnnuler.setOnClickListener{
-                    val fileName = editText.text.toString()
-
-                    try {
-                        val fileInputStream = openFileInput(fileName)
-                        val inputStreamReader = InputStreamReader(fileInputStream)
-                        val bufferedReader = BufferedReader(inputStreamReader)
-
-                        val stringBuilder = StringBuilder()
-                        var line: String? = bufferedReader.readLine()
-                        while (line != null) {
-                            stringBuilder.append(line).append("\n")
-                            line = bufferedReader.readLine()
-                        }
-                        bufferedReader.close()
-
-                        val json = stringBuilder.toString()
-                        val gson = Gson()
-                        val type = object : TypeToken<ArrayList<Point>>() {}.type
-                        points = gson.fromJson(json, type)
-                        redrawMap()
-                    } catch (e: FileNotFoundException) {
-                        e.printStackTrace()
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
+                bouttonAnnuler.setOnClickListener {
                     dialog.dismiss()
-
                 }
                 dialog.show()
             }
@@ -158,27 +134,22 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
 
         // Lancement de la trajectoire
         val lancerButton = findViewById<Button>(R.id.buttonLancer)
-        lancerButton.setOnClickListener{
-            for (i in 0 until points.size -1){
-                val positionDebut = points[i].latLng
-                val positionFin = points[i+1].latLng
+        lancerButton.setOnClickListener {
+            GlobalScope.launch(Dispatchers.Main) {
+                for (i in 0 until trajectoires.size) {
+                    val positionDebut = trajectoires[i].positionDebut.position
+                    val positionFin = trajectoires[i].positionFin.position
 
-                val positionsTrajectoire = getCoordinates(positionDebut,positionFin)
-                val marker = mMap.addMarker(MarkerOptions()
-                    .position(positionsTrajectoire[0]))
+                    val positionsTrajectoire = getCoordinates(positionDebut, positionFin, trajectoires[i].getVitesse())
+                    val marker = mMap.addMarker(MarkerOptions().position(positionsTrajectoire[0]))
 
-                lifecycleScope.launch {
                     for (j in 1 until positionsTrajectoire.size) {
+                        delay(33) // Attendre 33 ms avant la prochaine itération
                         marker!!.position = positionsTrajectoire[j]
-                        delay(25)
                     }
                 }
-
             }
         }
-
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-
 
     }
 
@@ -339,29 +310,33 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
             .draggable(true))!!
     }
 
-    fun getCoordinates(pointA : LatLng, pointB : LatLng): List<LatLng> {
-        val latA = pointA.latitude
-        val longA = pointA.longitude
-        val latB = pointB.latitude
-        val longB = pointB.longitude
-
+    fun getCoordinates(pointA: LatLng, pointB: LatLng, vitesseKnots: Double): List<LatLng> {
         val R = 6371
-        val dLat = Math.toRadians(latB - latA)
-        val dLong = Math.toRadians(longB - longA)
-        val a = sin(dLat / 2).pow(2) + cos(Math.toRadians(latA)) * cos(Math.toRadians(latB)) * sin(dLong / 2).pow(2)
+        val latA = Math.toRadians(pointA.latitude)
+        val longA = Math.toRadians(pointA.longitude)
+        val latB = Math.toRadians(pointB.latitude)
+        val longB = Math.toRadians(pointB.longitude)
+
+        val dLat = latB - latA
+        val dLong = longB - longA
+
+        val a = sin(dLat / 2).pow(2) + cos(latA) * cos(latB) * sin(dLong / 2).pow(2)
         val c = 2 * atan2(sqrt(a), sqrt(1 - a))
         val d = R * c
 
-        val stepSize = 0.001 // à changer si besoin de plus de points à revoir à la baisse
-        val numSteps = (d / stepSize).toInt()
-        val latStep = (latB - latA) / numSteps
-        val longStep = (longB - longA) / numSteps
+        val vitesseKmh = vitesseKnots * 1.852
+        val intervalleTemps = 33 // intervalle de temps en ms pour afficher 30 points par seconde
+        val tempsGlobal = d / vitesseKmh * 3600 * 1000 // temps en ms
+        val nombrePoints = (tempsGlobal / intervalleTemps).toInt() // distance parcourue en nm pendant l'intervalle de temps
 
-        val coordinates = (0..numSteps).map { i ->
-            LatLng(latA + i * latStep, longA + i * longStep)
+        val latStep = dLat / nombrePoints
+        val longStep = dLong / nombrePoints
+
+        return (0..nombrePoints).map { i ->
+            val lat = Math.toDegrees(latA + i * latStep)
+            val long = Math.toDegrees(longA + i * longStep)
+            LatLng(lat, long)
         }
-
-        return coordinates
     }
 
     @SuppressLint("MissingPermission")
