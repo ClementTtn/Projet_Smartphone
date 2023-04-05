@@ -4,13 +4,43 @@ import com.google.android.gms.maps.model.LatLng
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
+import android.os.Parcel
+import android.os.Parcelable
 
-class Drone(val nom: String){
+class Drone(val nom: String) : Parcelable {
 
     var positionActuel: Point = Point(LatLng(0.0,0.0),"bleu",0)
     var vitesse: Double? = null
     var angle: Double? = null
 
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(nom)
+        parcel.writeParcelable(positionActuel, flags)
+        parcel.writeValue(vitesse)
+        parcel.writeValue(angle)
+    }
+
+    companion object CREATOR : Parcelable.Creator<Drone> {
+        override fun createFromParcel(parcel: Parcel): Drone {
+            val nom = parcel.readString() ?: ""
+            val positionActuel = parcel.readParcelable<Point>(Point::class.java.classLoader) ?: Point(LatLng(0.0,0.0), "bleu", 0)
+            val vitesse = parcel.readValue(Double::class.java.classLoader) as? Double
+            val angle = parcel.readValue(Double::class.java.classLoader) as? Double
+            return Drone(nom).apply {
+                this.positionActuel = positionActuel
+                this.vitesse = vitesse
+                this.angle = angle
+            }
+        }
+
+        override fun newArray(size: Int): Array<Drone?> {
+            return arrayOfNulls(size)
+        }
+    }
 
     fun parseNMEA(trameNMEA: String) {
         val lines = trameNMEA.split("\n")
