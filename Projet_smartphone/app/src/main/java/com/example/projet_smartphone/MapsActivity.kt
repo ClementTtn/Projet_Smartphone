@@ -22,6 +22,8 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.example.projet_smartphone.databinding.ActivityMapsBinding
 import com.google.android.gms.maps.model.Marker
+import java.io.File
+import java.io.IOException
 import kotlin.math.round
 
 
@@ -86,6 +88,37 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+
+        val point1 = Point(LatLng(48.8566, 2.3522), "red", 1)
+        val point2 = Point(LatLng(48.8600, 2.3500), "blue", 2)
+        val point3 = Point(LatLng(48.8640, 2.3480), "green", 3)
+        val point4 = Point(LatLng(48.8680, 2.3460), "yellow", 4)
+        val point5 = Point(LatLng(48.8720, 2.3440), "purple", 5)
+
+
+
+        val trajectoire = Trajectoire("Trajectoire 1", listOf(point1, point2, point3, point4, point5))
+        val fileName = "drone_trajectory.gpx"
+
+        try {
+            trajectoire.saveGPXFile(this, fileName)
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+
+
+        val file = File(this.filesDir, fileName)
+
+        try {
+            val gpxContent = file.readText()
+            println("======================================\n\n\nContenu du fichier GPX : \n$gpxContent")
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+
+
+
+
 
         var trameNMEA = "\$GPRMC,104339.271,A,4609.055502,N,00110.158403,W,0.0,114.4,300323,,,*33\n" +
                 "\$IIVHW,114.4,T,114.4,M,0.0,N,0.0,K*55\n" +
@@ -180,7 +213,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
                 speedTextView.text = "${round(vitesse*10)/10} knots"
 
                 DroneMarkeur.position = positionDrone
-                // Répéter l'exécution de cette fonction toutes les 2 secondes
 
                 handler.postDelayed(this, 1000)
             }

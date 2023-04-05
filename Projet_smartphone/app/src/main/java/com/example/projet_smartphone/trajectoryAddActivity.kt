@@ -91,7 +91,7 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
                     val fileOutputStream : FileOutputStream
 
                     try {
-                        fileOutputStream = openFileOutput(fileName, Context.MODE_PRIVATE)
+                        fileOutputStream = openFileOutput(fileName, MODE_PRIVATE)
                         fileOutputStream.write(jsonString.toByteArray())
                     } catch (e: FileNotFoundException){
                         e.printStackTrace()
