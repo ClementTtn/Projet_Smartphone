@@ -9,8 +9,10 @@ import android.graphics.*
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
+import android.view.MenuItem
 import android.widget.Button
 import android.widget.EditText
+import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -20,6 +22,8 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.GoogleMap.OnMarkerDragListener
 import com.google.android.gms.maps.model.*
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import java.io.*
 
 class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback, OnMapReadyCallback {
@@ -50,8 +54,10 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
+        // Activation du bouton de retour au menu principale et modification de l'apparence
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
+            setHomeButtonEnabled(true)
             setBackgroundDrawable(ContextCompat.getDrawable(this@trajectoryAddActivity, R.drawable.background_degrade))
         }
         window.statusBarColor = Color.TRANSPARENT
@@ -70,12 +76,69 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
                 val editText = dialogView.findViewById<EditText>(R.id.edit_text)
                 val boutonSauvegarder = dialogView.findViewById<Button>(R.id.button_sauvegarder)
 
-                // Fermeture de la popup
-                val bouttonAnnuler = dialogView.findViewById<Button>(R.id.button_annuler)
-                bouttonAnnuler.setOnClickListener{
+                boutonSauvegarder.setOnClickListener{
+
+                    // Transformation des markers en points
+                    val points : ArrayList<Point> = ArrayList()
+                    for (i in 0 until positions.size ){
+                        points.add(Point(positions[i].position,"",i+1))
+                    }
+
+                    val gson = Gson()
+                    val jsonString = gson.toJson(points)
+                    val fileName : String = editText.text.toString()
+                    val fileOutputStream : FileOutputStream
+
+                    try {
+                        fileOutputStream = openFileOutput(fileName, Context.MODE_PRIVATE)
+                        fileOutputStream.write(jsonString.toByteArray())
+                    } catch (e: FileNotFoundException){
+                        e.printStackTrace()
+                    }catch (e: NumberFormatException){
+                        e.printStackTrace()
+                    }catch (e: IOException){
+                        e.printStackTrace()
+                    }catch (e: Exception){
+                        e.printStackTrace()
+                    }
+
                     dialog.dismiss()
                 }
 
+                // Fermeture de la popup
+                val bouttonAnnuler = dialogView.findViewById<Button>(R.id.button_annuler)
+                bouttonAnnuler.setOnClickListener{
+                    val fileName = editText.text.toString()
+
+                    try {
+                        var points = ArrayList<Point>()
+                        val fileInputStream = openFileInput(fileName)
+                        val inputStreamReader = InputStreamReader(fileInputStream)
+                        val bufferedReader = BufferedReader(inputStreamReader)
+
+                        val stringBuilder = StringBuilder()
+                        var line: String? = bufferedReader.readLine()
+                        while (line != null) {
+                            stringBuilder.append(line).append("\n")
+                            line = bufferedReader.readLine()
+                        }
+                        bufferedReader.close()
+
+                        val json = stringBuilder.toString()
+                        val gson = Gson()
+                        val type = object : TypeToken<ArrayList<Point>>() {}.type
+                        points = gson.fromJson(json, type)
+                        redrawMap(points)
+                    } catch (e: FileNotFoundException) {
+                        e.printStackTrace()
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                    dialog.dismiss()
+
+                }
                 dialog.show()
             }
             else{
@@ -94,6 +157,17 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
             // Lancement de la trajectoire
         }
 
+    }
+
+    // Retour au menu principale
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> {
+                finish()
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     override fun onMapsSdkInitialized(renderer: MapsInitializer.Renderer) {
@@ -138,7 +212,7 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
                             }
                             break
                         }
-                        else if(i == 0){
+                        else{
                             if(polylines.size > i){
                                 polylines[i].remove()
                                 polylines[i] = addPolyline(marker.position,positions[i+1].position)
@@ -168,6 +242,20 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
         val coord = LatLng(46.160329,-1.151139)
         mMap.moveCamera(CameraUpdateFactory.zoomTo(DEFAULT_ZOOM.toFloat()))
         mMap.moveCamera(CameraUpdateFactory.newLatLng(coord))
+    }
+
+    private fun redrawMap(points : ArrayList<Point>){
+        mMap.clear()
+        positions.clear()
+        polylines.clear()
+
+        for(i in 0 until points.size){
+            val point = points[i]
+            positions.add(addMarker(point.latLng,point.numero-1))
+            if( i > 0){
+                polylines.add(addPolyline(points[i-1].latLng,point.latLng))
+            }
+        }
     }
 
     private fun addPolyline(startPosition : LatLng, endPosition: LatLng) : Polyline {

@@ -16,31 +16,24 @@
         android:theme="@style/Theme.Projet_smartphone"
         tools:targetApi="33">
 
-        <!--
-             TODO: Before you run your application, you need a Google Maps API key.
-
-             To get one, follow the directions here:
-
-                https://developers.google.com/maps/documentation/android-sdk/get-api-key
-
-             Once you have your API key (it starts with "AIza"), define a new property in your
-             project's local.properties file (e.g. MAPS_API_KEY=Aiza...), and replace the
-             "YOUR_API_KEY" string in this file with "${MAPS_API_KEY}".
-        -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAlDFwuap7ApKXHg8zigKggjIB87G3MP0Y" />
 
         <activity
-            android:name=".trajectoryAddActivity"
+            android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/title_activity_maps">
+            android:label="@string/main_menu_title">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".trajectoryAddActivity"
+            android:exported="false"
+            android:label="@string/title_activity_maps" />
     </application>
 
 </manifest>
