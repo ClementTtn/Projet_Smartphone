@@ -8,17 +8,17 @@ import android.widget.ListView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 
-class MainActivity : AppCompatActivity() {
+class managedTrajec : AppCompatActivity() {
     private lateinit var adapter:MyAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_managedtrajec)
 
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setHomeButtonEnabled(true)
-            setBackgroundDrawable(ContextCompat.getDrawable(this@MainActivity, R.drawable.background_degrade))
+            setBackgroundDrawable(ContextCompat.getDrawable(this@managedTrajec, R.drawable.background_degrade))
         }
         window.statusBarColor = Color.TRANSPARENT
 
