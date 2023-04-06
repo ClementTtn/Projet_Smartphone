@@ -43,12 +43,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // Initialisation du drone au premier lancement de l'activité
         if(isFirstStart) {
             drone = Drone("Mon drone")
             drone.parseNMEA(trameNMEA)
             isFirstStart = false
         }
 
+        // Activation du bouton de retour au menu principale et modification de l'apparence
         supportActionBar?.apply {
             setBackgroundDrawable(ContextCompat.getDrawable(this@MainActivity, R.drawable.background_degrade))
         }
@@ -57,28 +59,33 @@ class MainActivity : AppCompatActivity() {
         // Blocage de la rotation
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
+        // Ajout du click listener sur le bouton de lancement de la fenetre 2 : Piloter mon drone : MapsActivity
         val boutonDrone = findViewById<Button>(R.id.button_drone)
         val myActivityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             drone = result.data?.extras?.getParcelable("drone_object")!!
             isFirstStart = false
         }
+
+        // Ajout du click listener sur le bouton de lancement de la fenetre 3 : Créer une trajectoire : TrajectoryAddActivity
         boutonDrone.setOnClickListener{
+            // Lancement de l'activité
             val intent = Intent(this@MainActivity, MapsActivity::class.java)
-            intent.putExtra("drone_object", drone)
-            myActivityResultLauncher.launch(intent)
-        }
-
-        val boutonTrajectory = findViewById<Button>(R.id.button_trajectory)
-        boutonTrajectory.setOnClickListener{
-            val intent = Intent(this@MainActivity, TrajectoryAddActivity::class.java)
-
             startActivity(intent)
         }
 
+        // Ajout du click listener sur le bouton de lancement de la fenetre 3 : Mes trajectoires : TrajectoryAddActivity
+        val boutonTrajectory = findViewById<Button>(R.id.button_trajectory)
+        boutonTrajectory.setOnClickListener{
+            // Lancement de l'activité
+            val intent = Intent(this@MainActivity, TrajectoryAddActivity::class.java)
+            startActivity(intent)
+        }
+
+        // Ajout du click listener sur le bouton de lancement de la fenetre 4 : Mes trajectoires : ManagedTrajec
         val boutonMyTrajectory = findViewById<Button>(R.id.button_mytrajectory)
         boutonMyTrajectory.setOnClickListener{
+            // Lancement de l'activité
             val intent = Intent(this@MainActivity, ManagedTrajec::class.java)
-
             startActivity(intent)
         }
 

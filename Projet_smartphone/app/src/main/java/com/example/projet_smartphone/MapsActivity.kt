@@ -76,7 +76,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
 
 
     // Initialise la carte Google Maps, récupère les permissions de localisation de l'utilisateur,
-    // crée et affiche le marqueur du drone sur la carte. Elle crée également des listeners pour les boutons de zoom et le bouton de suivi de caméra,
+    // Crée et affiche le marqueur du drone sur la carte. Elle crée également des listeners pour les boutons de zoom et le bouton de suivi de caméra,
     // ainsi qu'un listener pour le bouton de retour au menu principal.
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -105,8 +105,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
     }
 
 
-    //écupère l'instance de GoogleMap, met à jour l'interface utilisateur en fonction de l'état des permissions,
-    // crée le marqueur du drone sur la carte, et crée des écouteurs pour les boutons de zoom et le bouton de suivi de caméra.
+    // Récupère l'instance de GoogleMap, met à jour l'interface utilisateur en fonction de l'état des permissions,
+    // Crée le marqueur du drone sur la carte, et crée des écouteurs pour les boutons de zoom et le bouton de suivi de caméra.
     override fun onMapReady(googleMap: GoogleMap) {
 
         mMap = googleMap
@@ -139,13 +139,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
         mMap.animateCamera(zoom)
 
 
-        // Ajout d'un écouteur pour le bouton de zoom plus
+        // Ajout d'un click listener pour le bouton de zoom plus
         val zoomInButton = findViewById<ImageButton>(R.id.zoom_in_button)
         zoomInButton.setOnClickListener {
             mMap.animateCamera(CameraUpdateFactory.zoomIn())
         }
 
-        // Ajout d'un écouteur pour le bouton de zoom moins
+        // Ajout d'un click listener pour le bouton de zoom moins
         val zoomOutButton = findViewById<ImageButton>(R.id.zoom_out_button)
         zoomOutButton.setOnClickListener {
             mMap.animateCamera(CameraUpdateFactory.zoomOut())

@@ -31,6 +31,7 @@ class Trajectoire(val positionDebut : Marker, val positionFin : Marker, var poly
         return this.listePoints
     }
 
+    // Fonction permettant de générer toutes les coordonnées entre les points de début et de fin des markers
     fun getCoordinates(): List<LatLng> {
         val r = 6371
         val latA = Math.toRadians(this.positionDebut.position.latitude)
@@ -60,6 +61,7 @@ class Trajectoire(val positionDebut : Marker, val positionFin : Marker, var poly
         }
     }
 
+    // Fonction permettant le calcul de la direction de la trajectoire en degré
     fun getDirection() : Float{
 
         val latA = Math.toRadians(this.positionDebut.position.latitude)

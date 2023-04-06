@@ -114,6 +114,7 @@ class Drone(val nom: String) : Parcelable {
         return "$degrees$minutes,$direction"
     }
 
+    // Fonction permettant de mettre à jour la direction du drone en degré
     fun setDirection(angleRadian : Double){
         this.angle = angleRadian * (180 / Math.PI)
     }

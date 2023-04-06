@@ -13,7 +13,6 @@ import android.util.Log
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.EditText
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -57,6 +56,7 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
         binding = TrajectoryAddActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Récupère la service de localisation
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -75,11 +75,14 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
         // Blocage de la rotation
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
+        // On récupère l'intent avec le nom du fichier
         nomFichier = intent.getStringExtra("nom_fichier")
 
+        // Ajoute le clickLister sur le bouton de sauvegarde
         val saveButton = findViewById<Button>(R.id.buttonSauvegarder)
         saveButton.setOnClickListener{
             if(points.size > 1){
+
                 // Création de la popup de sauvegarder de la trajectoire
                 val dialogBuilder = AlertDialog.Builder(this)
                 val inflater = this.layoutInflater
@@ -88,11 +91,16 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
 
                 val dialog = dialogBuilder.create()
 
+                // Récupération des éléments de la vue
                 val editText = dialogView.findViewById<EditText>(R.id.edit_text)
                 val boutonSauvegarder = dialogView.findViewById<Button>(R.id.button_sauvegarder)
 
+                // Ajoute le click listener sur le bouton de sauvegarde
                 boutonSauvegarder.setOnClickListener{
 
+                    // On sauvegarde les points de la trajectoire dans un fichier .traj et dans .gpx
+
+                    // Sauvegarde du .traj
                     val gson = Gson()
                     val jsonString = gson.toJson(points)
                     val fileName : String = editText.text.toString() + ".traj"
@@ -111,16 +119,15 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
                         e.printStackTrace()
                     }
 
+                    // Sauvegarde du .gpx
                     val trajectoireManager  = TrajectoireManager(points,editText.text.toString())
                     val gpxContent = trajectoireManager.exportToGPX()
                     val fileNameGPX = editText.text.toString() + ".gpx"
                     trajectoireManager.saveGPXToFile(this,gpxContent,fileNameGPX)
-                    //println(gpxContent)
+                    trajectoireManager.readGPXFile(this, fileNameGPX)
                     val gpxContent2 = trajectoireManager.readGPXFile(this, fileNameGPX)
                     println("=========================")
                     println(gpxContent2)
-
-                    Toast.makeText(this, "Export au format GPX", Toast.LENGTH_SHORT).show()
 
                     dialog.dismiss()
                 }
@@ -130,6 +137,8 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
                 bouttonAnnuler.setOnClickListener {
                     dialog.dismiss()
                 }
+
+                // Affichage de la popup
                 dialog.show()
             }
             else{
@@ -150,6 +159,8 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
             if(!this.trajectoireLance){
                 trajectoireLance = true
                 GlobalScope.launch(Dispatchers.Main) {
+
+                    // Affichage du trajet du drone sur chaque trajectoire
                     for (i in 0 until trajectoires.size) {
 
                         // Calcul des points de la trajectoire
@@ -167,12 +178,11 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
                         mMap.moveCamera(cameraUpdate)
 
                         // Changement de l'icon du "marker" drone et de sa taille
-                        val originalBitmap =
-                            BitmapFactory.decodeResource(resources, R.drawable.waverider)
+                        val originalBitmap = BitmapFactory.decodeResource(resources, R.drawable.waverider)
                         val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, 125, 125, false)
                         val markerIcon = BitmapDescriptorFactory.fromBitmap(scaledBitmap)
 
-                        // Mouvement du marker du drone
+                        // Création du marker du drone pour cette trajectoire
                         val marker = mMap.addMarker(
                             MarkerOptions()
                                 .position(positionsTrajectoire[0])
@@ -180,6 +190,7 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
                                 .rotation(trajectoires[i].getDirection())
                                 .anchor(0.5f, 0.5f)
                         )
+                        // Boucle pour bouger le marker du drone sur une trajectoire
                         for (j in 1 until positionsTrajectoire.size) {
                             delay(33) // Attendre 33 ms avant la prochaine itération
                             marker!!.position = positionsTrajectoire[j]
@@ -223,16 +234,20 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
         // Get the current location of the device and set the position of the map.
         getDeviceLocation()
 
+        // On vérifie si un intent a été passer
         if(nomFichier != null){
+            // On trace la map en fonction du fichier de .traj
             redrawMap(nomFichier!!)
         }
 
+        // Ajout le click listener pour le changement de vitesse d'une trajectoire
         mMap.setOnPolylineClickListener { polyline ->
 
             val pointDebut = polyline.points.first()
             val pointFin = polyline.points.last()
             var trajectoire : Trajectoire? = null
 
+            // On trouve la trajectoire correspondant à la polyline
             for (i in 0 until trajectoires.size) {
                 val trajectoireRecherche = trajectoires[i]
                 if(trajectoireRecherche.positionDebut.position.latitude == pointDebut.latitude && trajectoireRecherche.positionDebut.position.longitude == pointDebut.longitude
@@ -251,19 +266,25 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
             dialogBuilder.setView(dialogView)
             val dialog = dialogBuilder.create()
 
+            // On mets la vitesse actuelle de la trajectoire
             speedEdit.setText(trajectoire!!.getVitesse().toString())
 
+            // On rajoute le click listener sur le bouton sauvegarde
             val boutonSauvegarder = dialogView.findViewById<Button>(R.id.button_sauvegarder)
             boutonSauvegarder.setOnClickListener{
+                // On change la vitesse de la trajectoire
                 trajectoire.setVitesse(speedEdit.text.toString().toDouble())
                 dialog.dismiss()
             }
 
+            // On rajoute le clickListener du bouton annuler
             val boutonAnnuler = dialogView.findViewById<Button>(R.id.button_annuler)
             boutonAnnuler.setOnClickListener{
+                // On ferme la popup
                 dialog.dismiss()
             }
 
+            // On affiche le popup
             dialog.show()
         }
 
@@ -273,11 +294,14 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
             override fun onMarkerDrag(marker: Marker) {}
             override fun onMarkerDragEnd(marker: Marker) {
 
+                // On trouve la bonne trajectoire
                 for (i in 0 until trajectoires.size) {
 
                     if(trajectoires[i].positionDebut == marker){
 
+                        // On efface et rajoute la trajectoire modifier, en choissant le bon type de modification en fonction de la position de la trajectoire dans la liste
                         if(i > 0){
+                            // On modifie la trajectoire avant et après le points
                             trajectoires[i].polyline.remove()
                             trajectoires[i].polyline = addPolyline(trajectoires[i].positionDebut.position,trajectoires[i].positionFin.position)
                             trajectoires[i-1].polyline.remove()
@@ -285,15 +309,18 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
                             break
                         }
                         else{
+                            // On modifie la première trajectoire
                             trajectoires[i].polyline.remove()
                             trajectoires[i].polyline = addPolyline(trajectoires[i].positionDebut.position,trajectoires[i].positionFin.position)
-
+                            break
                         }
 
                     }
                     else if( i == trajectoires.size-1 && trajectoires[i].positionFin == marker){
+                        // On modifie la dernière trajectoire
                         trajectoires[i].polyline.remove()
                         trajectoires[i].polyline = addPolyline(trajectoires[i].positionDebut.position,trajectoires[i].positionFin.position)
+                        break
                     }
                 }
 
@@ -309,14 +336,16 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
 
             // Ajout du polyline reliant les marqueurs, si il y a plus d'un marqueur
             if(points.size > 0){
+                // On crée et ajoute la trajectoire partant de l'avant dernier marker, jusqu'au nouveau marker
                 val polyline = addPolyline(lastMarker.position,latLng)
                 trajectoires.add(Trajectoire(lastMarker,marker,polyline))
             }
+            // On rajoute le point et "sauvegarde" le dernier marker
             lastMarker = marker
             points.add(point)
         }
 
-        // Définir une position de départ pour la caméra
+        // On définit une position de départ pour la caméra
         val coord = LatLng(46.160329,-1.151139)
         mMap.moveCamera(CameraUpdateFactory.zoomTo(DEFAULT_ZOOM.toFloat()))
         mMap.moveCamera(CameraUpdateFactory.newLatLng(coord))
@@ -324,9 +353,7 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
 
     private fun redrawMap(nomFichier : String){
 
-        // On efface la map
-        mMap.clear()
-
+        // On récupère les points du fichier
         try {
             val fileInputStream = openFileInput(nomFichier)
             val inputStreamReader = InputStreamReader(fileInputStream)
@@ -345,7 +372,6 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
             val type = object : TypeToken<ArrayList<Point>>() {}.type
             points = gson.fromJson(json, type)
 
-            print("test $nomFichier ${points.size}\n$json\n\n\n\n")
         } catch (e: FileNotFoundException) {
             e.printStackTrace()
         } catch (e: IOException) {
@@ -354,22 +380,30 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
             e.printStackTrace()
         }
 
-        // On retrace les polylines
+        // On retrace les polylines et les markers correspondant au fichier .traj
         for(i in 0 until points.size){
+            // On rajoute les marker
             val marker = addMarker(points[i].latLng,i)
             if(i > 0){
+                // On rajoute les polylines
                 val polyline = addPolyline(points[i-1].latLng,points[i].latLng)
                 trajectoires.add(Trajectoire(lastMarker,marker,polyline))
             }
             lastMarker = marker
         }
 
-
     }
 
+    // Fonction permettant de rajouter une polyline aussi appelée une trajectoire à la map
     private fun addPolyline(startPosition : LatLng, endPosition: LatLng) : Polyline {
+
+        // On ajoute les flèches comme texture de la polyline
         val stampStyle = TextureStyle.newBuilder(BitmapDescriptorFactory.fromResource(android.R.drawable.arrow_down_float)).build()
+
+        // On crée le style de la polyline
         val span = StyleSpan(StrokeStyle.colorBuilder(Color.BLACK).stamp(stampStyle).build())
+
+        // On retourne la polyline
         return mMap.addPolyline(
             PolylineOptions()
                 .add(startPosition, endPosition)
@@ -381,6 +415,7 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
         )
     }
 
+    // Fonction permettant de rajouter un marker à la map
     private fun addMarker(position : LatLng, numero : Int) : Marker{
         return mMap.addMarker(MarkerOptions()
             .position(position)
@@ -388,6 +423,7 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
             .draggable(true))!!
     }
 
+    // Fonction tiré de la documentation google/kotlin permettant d'actualiser la localisation du téléphone et de modifier l'affichage en conséquence
     @SuppressLint("MissingPermission")
     private fun updateLocationUI() {
         try {
@@ -405,6 +441,7 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
         }
     }
 
+    // Fonction tiré de la documentation google/kotlin permettant d'obtenir les droits de localisation
     private fun getLocationPermission() {
         /*
          * Request location permission, so that we can get the location of the
@@ -421,6 +458,7 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
         }
     }
 
+    // Fonction tiré de la documentation google/kotlin permettant d'obtenir la localisation du téléphone
     @SuppressLint("MissingPermission")
     private fun getDeviceLocation() {
         /*
