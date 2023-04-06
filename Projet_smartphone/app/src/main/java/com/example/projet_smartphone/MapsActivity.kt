@@ -14,6 +14,8 @@ import android.view.MenuItem
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import android.content.pm.ActivityInfo
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
@@ -25,6 +27,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.example.projet_smartphone.databinding.ActivityMapsBinding
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.Marker
 import kotlin.math.*
 
@@ -48,11 +51,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
 
         val r = 6371.0 // Earth radius in km
 
-        val lat2 = asin(
-            sin(lat1) * cos(distance/r) + cos(lat1) * sin(distance/r) * cos(
-            direction
-        )
-        )
+        val lat2 = asin(sin(lat1) * cos(distance/r) + cos(lat1) * sin(distance/r) * cos(direction))
         val lon2 = lon1 + atan2(sin(direction) * sin(distance/r) * cos(lat1), cos(distance/r) - sin(lat1) * sin(lat2))
 
         val updatedLat = Math.toDegrees(lat2)
@@ -120,7 +119,18 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
         }
         positionDrone = drone.positionActuel.latLng
 
-        droneMarkeur = mMap.addMarker(MarkerOptions().position(positionDrone).title(drone.nom))!!
+        // Changement de l'icon du "marker" drone et de sa taille
+        val originalBitmap = BitmapFactory.decodeResource(resources, R.drawable.waverider)
+        val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, 125, 125, false)
+        val markerIcon = BitmapDescriptorFactory.fromBitmap(scaledBitmap)
+
+        droneMarkeur = mMap.addMarker(MarkerOptions()
+            .position(positionDrone)
+            .title(drone.nom)
+            .icon(markerIcon)
+            .anchor(0.5f,0.5f)
+            .rotation(drone.angle!!.toFloat())
+        )!!
         mMap.moveCamera(CameraUpdateFactory.newLatLng(positionDrone))
         val zoomLevel = 15f
         val zoom = CameraUpdateFactory.newLatLngZoom(positionDrone, zoomLevel)
@@ -221,7 +231,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
                     append(" knots")
                 }
 
+                drone.setDirection(accelerometerValues[0])
+
                 droneMarkeur.position = positionDrone
+                droneMarkeur.rotation = drone.angle!!.toFloat()
 
                 if (cameraFollowsDrone) {
                     mMap.animateCamera(CameraUpdateFactory.newLatLng(positionDrone))

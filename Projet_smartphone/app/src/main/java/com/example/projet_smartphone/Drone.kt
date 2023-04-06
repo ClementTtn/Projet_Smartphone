@@ -7,6 +7,7 @@ import java.util.*
 import android.os.Parcel
 import android.os.Parcelable
 import kotlin.math.abs
+import kotlin.math.atan2
 
 class Drone(val nom: String) : Parcelable {
 
@@ -108,6 +109,10 @@ class Drone(val nom: String) : Parcelable {
         val minutes = String.format(Locale.US, "%.4f", (abs(longitude) - abs(longitude.toInt())).times(60))
         val direction = if (longitude < 0) "W" else "E"
         return "$degrees$minutes,$direction"
+    }
+
+    fun setDirection(angleRadian : Double){
+        this.angle = angleRadian * (180 / Math.PI)
     }
 
 }

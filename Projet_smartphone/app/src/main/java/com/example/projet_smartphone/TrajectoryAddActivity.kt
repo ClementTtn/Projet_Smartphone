@@ -151,7 +151,7 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
                     val cameraUpdate = CameraUpdateFactory.newCameraPosition(newCameraPosition)
                     mMap.moveCamera(cameraUpdate)
 
-                    // Changement de la taille de l'icon du "marker" drone
+                    // Changement de l'icon du "marker" drone et de sa taille
                     val originalBitmap = BitmapFactory.decodeResource(resources, R.drawable.waverider)
                     val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, 125, 125, false)
                     val markerIcon = BitmapDescriptorFactory.fromBitmap(scaledBitmap)
