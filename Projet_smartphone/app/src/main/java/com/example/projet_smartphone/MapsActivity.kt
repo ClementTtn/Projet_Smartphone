@@ -220,7 +220,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
         return
     }
 
-    private fun onDestroyMap() {
+    fun onDestroyMap() {
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as? SupportMapFragment
         mapFragment?.let {
             supportFragmentManager
