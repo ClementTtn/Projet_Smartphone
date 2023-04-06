@@ -46,8 +46,10 @@ class Drone(val nom: String) : Parcelable {
     // Récupère la trame et analyse les données NMEA pour extraire la latitude, la longitude,
     // la vitesse et l'angle de trajectoire d'un drone et mettre à jour les propriétés du drone en conséquence.
     fun parseNMEA(trameNMEA: String) {
+        // La trame NMEA est divisée en lignes.
         val lines = trameNMEA.split("\n")
 
+        // Pour chaque ligne, les informations pertinentes sont extraites et les propriétés du drone sont mises à jour.
         for (line in lines) {
             val tokens = line.split(",")
 
@@ -70,12 +72,13 @@ class Drone(val nom: String) : Parcelable {
     }
 
 
-
+    // La fonction parseLatitude extrait la latitude à partir d'une chaîne de caractères.
     private fun parseLatitude(latitudeStr: String, direction: String): Double {
         val decimalDegrees = (latitudeStr.substring(0, 2).toDouble() + latitudeStr.substring(2).toDouble() / 60)
         return if (direction == "S") -decimalDegrees else decimalDegrees
     }
 
+    // La fonction parseLongitude extrait la longitude à partir d'une chaîne de caractères.
     private fun parseLongitude(longitudeStr: String, direction: String): Double {
         val decimalDegrees = (longitudeStr.substring(0, 3).toDouble() + longitudeStr.substring(3).toDouble() / 60)
         return if (direction == "W") -decimalDegrees else decimalDegrees
@@ -101,12 +104,14 @@ class Drone(val nom: String) : Parcelable {
         return "\$GPRMC,${date}000000,A,$latitude,N,$longitude,E,$vitesseKnots,$angleTraj,$date,0.0,E,A"
     }
 
+    // La fonction formatLatitude formate la latitude pour l'inclure dans une trame NMEA.
     private fun formatLatitude(latitude: Double): String {
         val degrees = latitude.toInt().toString().padStart(2, '0')
         val minutes = String.format(Locale.US, "%.4f", (latitude - degrees.toInt()).times(60))
         return "$degrees$minutes"
     }
 
+    // La fonction formatLongitude formate la longitude pour l'inclure dans une trame NMEA.
     private fun formatLongitude(longitude: Double): String {
         val degrees = abs(longitude.toInt()).toString().padStart(3, '0')
         val minutes = String.format(Locale.US, "%.4f", (abs(longitude) - abs(longitude.toInt())).times(60))
@@ -114,6 +119,7 @@ class Drone(val nom: String) : Parcelable {
         return "$degrees$minutes,$direction"
     }
 
+    // La fonction setDirection met à jour la propriété angle du drone avec l'angle de trajectoire en degrés.
     fun setDirection(angleRadian : Double){
         this.angle = angleRadian * (180 / Math.PI)
     }
