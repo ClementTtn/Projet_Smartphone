@@ -191,8 +191,11 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
                                 .anchor(0.5f, 0.5f)
                         )
                         // Boucle pour bouger le marker du drone sur une trajectoire
+                        val drone = Drone("Mon drone")
+                        drone.setAngle(trajectoires[i].getDirection().toDouble())
                         for (j in 1 until positionsTrajectoire.size) {
                             delay(33) // Attendre 33 ms avant la prochaine itération
+                            println(drone.genereTrameNMEA(positionsTrajectoire[j].latitude, positionsTrajectoire[j].longitude, trajectoires[i].getVitesse()))
                             marker!!.position = positionsTrajectoire[j]
                         }
                         marker!!.remove()
