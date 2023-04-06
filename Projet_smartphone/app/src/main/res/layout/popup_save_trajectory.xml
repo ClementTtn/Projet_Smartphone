@@ -22,7 +22,8 @@
         android:inputType="text"
         android:layout_marginHorizontal="36dp"
         android:layout_marginBottom="16dp"
-        android:maxLines="1" />
+        android:maxLines="1"
+        android:autofillHints="" />
 
     <Button
         android:id="@+id/button_sauvegarder"

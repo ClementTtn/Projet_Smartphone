@@ -17,7 +17,7 @@
         android:textSize="20sp"
         android:textStyle="bold"
         android:textColor="#ffffff"
-        android:text="0 knots"
+        android:text="@string/spped_text_default"
         android:padding="10dp"
         android:background="@drawable/speed_circle"
         android:layout_alignParentBottom="true"
@@ -32,7 +32,7 @@
         android:layout_alignParentEnd="true"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
-        android:text="Suivi de la caméra" />
+        android:text="@string/button_follow_camera" />
 
     <ImageButton
         android:id="@+id/zoom_in_button"
@@ -40,9 +40,11 @@
         android:layout_height="50dp"
         android:layout_alignParentEnd="true"
         android:layout_marginEnd="10dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="60dp"
         android:background="@drawable/round_button"
-        app:srcCompat="@drawable/ic_plus" />
+        app:srcCompat="@drawable/ic_plus"
+        android:contentDescription="@string/bouton_dezoom_desc"
+        />
 
     <ImageButton
         android:id="@+id/zoom_out_button"
@@ -53,7 +55,8 @@
         android:layout_marginEnd="10dp"
         android:layout_marginTop="10dp"
         android:background="@drawable/round_button"
-        app:srcCompat="@drawable/ic_minus" />
+        app:srcCompat="@drawable/ic_minus"
+        android:contentDescription="@string/bouton_zoom_desc" />
 
 
 

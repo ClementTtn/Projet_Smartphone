@@ -15,4 +15,10 @@
     <string name="button_ajouter">Ajouter</string>
     <string name="button_camera_fixe">Caméra fixe</string>
     <string name="button_camera_suivi">Suivi de la caméra</string>
+    <string name="button_follow_camera">Suivi de la caméra</string>
+    <string name="spped_text_default">0 knots</string>
+    <string name="bouton_zoom_desc">Bouton Zoom</string>
+    <string name="bouton_dezoom_desc">Bouton DeZoom</string>
+    <string name="app_logo">Logo de l\'application</string>
+    <string name="button_default_item">1</string>
 </resources>

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:map="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -16,7 +15,7 @@
         map:layout_constraintTop_toTopOf="parent"
         android:text="@string/main_menu_title"
         android:textColor="@color/white"
-        android:textSize="48dp"
+        android:textSize="48sp"
         />
 
     <Button
@@ -72,7 +71,8 @@
         map:layout_constraintStart_toStartOf="parent"
         map:layout_constraintEnd_toEndOf="parent"
         map:layout_constraintTop_toBottomOf="@id/button_mytrajectory"
-        android:src="@mipmap/ic_launcher"/>
+        android:src="@mipmap/ic_launcher"
+        android:contentDescription="@string/app_logo" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

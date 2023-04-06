@@ -7,7 +7,6 @@ import java.util.*
 import android.os.Parcel
 import android.os.Parcelable
 import kotlin.math.abs
-import kotlin.math.atan2
 
 class Drone(val nom: String) : Parcelable {
 

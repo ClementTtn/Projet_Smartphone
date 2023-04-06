@@ -24,7 +24,7 @@
         android:layout_marginBottom="16dp"
         android:maxLines="1"
         android:gravity="center"
-        />
+        android:autofillHints="" />
 
     <Button
         android:id="@+id/button_sauvegarder"
