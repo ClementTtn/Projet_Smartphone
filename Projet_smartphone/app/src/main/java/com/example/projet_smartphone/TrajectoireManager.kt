@@ -16,7 +16,7 @@ class TrajectoireManager(var listPoints: List<Point>, var nom: String) {
         dateFormatter.timeZone = TimeZone.getTimeZone("UTC")
 
         gpxContent.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?>\n")
-        gpxContent.append("<gpx xmlns=\"http://www.topografix.com/GPX/1/1\" version=\"1.1\" creator=\"TrajectoireManager\">\n")
+        gpxContent.append("<gpx xmlns=\"http://www.topografix.com/GPX/1/1\" version=\"1.1\" creator=\"WaveRider\">\n")
 
 
             gpxContent.append("\t<trk>\n")
