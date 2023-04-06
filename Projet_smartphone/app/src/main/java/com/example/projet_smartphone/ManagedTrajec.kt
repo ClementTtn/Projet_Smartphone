@@ -3,15 +3,18 @@ package com.example.projet_smartphone
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.MenuItem
 import android.widget.AdapterView
 import android.widget.Button
 import android.widget.ListView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 
 class ManagedTrajec : AppCompatActivity() {
     private lateinit var adapter:MyAdapter
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,6 +50,7 @@ class ManagedTrajec : AppCompatActivity() {
 
             startActivity(intent)
         }
+
 
     }
 

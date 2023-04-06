@@ -13,6 +13,7 @@ import android.util.Log
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -108,6 +109,20 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
                     }catch (e: Exception){
                         e.printStackTrace()
                     }
+
+
+
+                    val trajectoireManager  = TrajectoireManager(points,editText.text.toString())
+                    val gpxContent = trajectoireManager.exportToGPX()
+                    val fileNameGPX = editText.text.toString() + ".gpx"
+                    trajectoireManager.saveGPXToFile(this,gpxContent,fileNameGPX)
+                    //println(gpxContent)
+                    val gpxContent2 = trajectoireManager.readGPXFile(this, fileNameGPX)
+                    println("=========================")
+                    println(gpxContent2)
+
+                    Toast.makeText(this, "Export au format GPX", Toast.LENGTH_SHORT).show()
+
 
                     dialog.dismiss()
                 }

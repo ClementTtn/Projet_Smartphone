@@ -1,29 +1,14 @@
 package com.example.projet_smartphone
 
 import android.content.Context
+import com.google.android.gms.maps.model.LatLng
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
 
-class TrajectoireManager {
-    private val trajectoires: MutableList<Trajectoire> = mutableListOf()
+class TrajectoireManager(var listPoints: List<Point>, var nom: String) {
 
-    fun ajouterTrajectoire(trajectoire: Trajectoire) {
-        trajectoires.add(trajectoire)
-    }
-
-    fun supprimerTrajectoire(id: Int) {
-        trajectoires.removeIf { it.id == id }
-    }
-
-    fun getTrajectoire(id: Int): Trajectoire? {
-        return trajectoires.find { it.id == id }
-    }
-
-    fun getAllTrajectoires(): List<Trajectoire> {
-        return trajectoires.toList()
-    }
 
     fun exportToGPX(): String {
         val gpxContent = StringBuilder()
@@ -33,12 +18,12 @@ class TrajectoireManager {
         gpxContent.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?>\n")
         gpxContent.append("<gpx xmlns=\"http://www.topografix.com/GPX/1/1\" version=\"1.1\" creator=\"TrajectoireManager\">\n")
 
-        for (trajectoire in trajectoires) {
+
             gpxContent.append("\t<trk>\n")
-            gpxContent.append("\t\t<name>${trajectoire.getNom()}</name>\n")
+            gpxContent.append("\t\t<name>${this.nom}</name>\n")
             gpxContent.append("\t\t<trkseg>\n")
 
-            for (point in trajectoire.getListePoints()) {
+            for (point in listPoints) {
                 val time = dateFormatter.format(Date()) // Utilisez la date et l'heure actuelles pour cet exemple
                 gpxContent.append("\t\t\t<trkpt lat=\"${point.latLng.latitude}\" lon=\"${point.latLng.longitude}\">\n")
                 gpxContent.append("\t\t\t\t<time>$time</time>\n")
@@ -48,7 +33,7 @@ class TrajectoireManager {
 
             gpxContent.append("\t\t</trkseg>\n")
             gpxContent.append("\t</trk>\n")
-        }
+
 
         gpxContent.append("</gpx>")
 
@@ -66,4 +51,3 @@ class TrajectoireManager {
     }
 
 }
-

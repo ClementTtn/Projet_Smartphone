@@ -28,7 +28,7 @@ class Trajectoire(val positionDebut : Marker, val positionFin : Marker, var poly
     }
 
     fun getListePoints() : List<Point>{
-        return this.getListePoints()
+        return this.listePoints
     }
 
     fun getCoordinates(): List<LatLng> {
