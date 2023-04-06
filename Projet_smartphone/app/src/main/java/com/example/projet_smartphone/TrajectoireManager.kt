@@ -1,7 +1,6 @@
 package com.example.projet_smartphone
 
 import android.content.Context
-import com.google.android.gms.maps.model.LatLng
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*

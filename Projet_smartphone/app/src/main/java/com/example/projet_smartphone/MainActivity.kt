@@ -66,7 +66,6 @@ class MainActivity : AppCompatActivity() {
             isFirstStart = false
         }
 
-        // Ajout du click listener sur le bouton de lancement de la fenetre 2 : Piloter mon drone : MapsActivity
         boutonDrone.setOnClickListener{
             // Lancement de l'activité
             val intent = Intent(this@MainActivity, MapsActivity::class.java)
