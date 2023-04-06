@@ -40,6 +40,7 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
     private var points : ArrayList<Point> = ArrayList()
     private val trajectoires : ArrayList<Trajectoire> = ArrayList()
     private var nomFichier : String? = null
+    private var trajectoireLance : Boolean = false
     private lateinit var lastMarker : Marker
     private var locationPermissionGranted = false
     private var lastKnownLocation: Location? = null
@@ -110,8 +111,6 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
                         e.printStackTrace()
                     }
 
-
-
                     val trajectoireManager  = TrajectoireManager(points,editText.text.toString())
                     val gpxContent = trajectoireManager.exportToGPX()
                     val fileNameGPX = editText.text.toString() + ".gpx"
@@ -122,7 +121,6 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
                     println(gpxContent2)
 
                     Toast.makeText(this, "Export au format GPX", Toast.LENGTH_SHORT).show()
-
 
                     dialog.dismiss()
                 }
@@ -149,40 +147,46 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
         val lancerButton = findViewById<Button>(R.id.buttonLancer)
         lancerButton.setOnClickListener {
             // Lancement de la trajectoire
-            GlobalScope.launch(Dispatchers.Main) {
-                for (i in 0 until trajectoires.size) {
+            if(!this.trajectoireLance){
+                trajectoireLance = true
+                GlobalScope.launch(Dispatchers.Main) {
+                    for (i in 0 until trajectoires.size) {
 
-                    // Calcul des points de la trajectoire
-                    val positionsTrajectoire = trajectoires[i].getCoordinates()
+                        // Calcul des points de la trajectoire
+                        val positionsTrajectoire = trajectoires[i].getCoordinates()
 
-                    // Remise de l'orientation de la map au nord
-                    val currentLatLng = mMap.cameraPosition.target
-                    val currentZoomLevel = mMap.cameraPosition.zoom
-                    val newCameraPosition = CameraPosition.Builder()
-                        .target(currentLatLng)
-                        .zoom(currentZoomLevel)
-                        .bearing(0f) // réinitialise l'orientation à 0
-                        .build()
-                    val cameraUpdate = CameraUpdateFactory.newCameraPosition(newCameraPosition)
-                    mMap.moveCamera(cameraUpdate)
+                        // Remise de l'orientation de la map au nord
+                        val currentLatLng = mMap.cameraPosition.target
+                        val currentZoomLevel = mMap.cameraPosition.zoom
+                        val newCameraPosition = CameraPosition.Builder()
+                            .target(currentLatLng)
+                            .zoom(currentZoomLevel)
+                            .bearing(0f) // réinitialise l'orientation à 0
+                            .build()
+                        val cameraUpdate = CameraUpdateFactory.newCameraPosition(newCameraPosition)
+                        mMap.moveCamera(cameraUpdate)
 
-                    // Changement de l'icon du "marker" drone et de sa taille
-                    val originalBitmap = BitmapFactory.decodeResource(resources, R.drawable.waverider)
-                    val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, 125, 125, false)
-                    val markerIcon = BitmapDescriptorFactory.fromBitmap(scaledBitmap)
+                        // Changement de l'icon du "marker" drone et de sa taille
+                        val originalBitmap =
+                            BitmapFactory.decodeResource(resources, R.drawable.waverider)
+                        val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, 125, 125, false)
+                        val markerIcon = BitmapDescriptorFactory.fromBitmap(scaledBitmap)
 
-                    // Mouvement du marker du drone
-                    val marker = mMap.addMarker(MarkerOptions()
-                        .position(positionsTrajectoire[0])
-                        .icon(markerIcon)
-                        .rotation(trajectoires[i].getDirection())
-                        .anchor(0.5f,0.5f)
-                    )
-                    for (j in 1 until positionsTrajectoire.size) {
-                        delay(33) // Attendre 33 ms avant la prochaine itération
-                        marker!!.position = positionsTrajectoire[j]
+                        // Mouvement du marker du drone
+                        val marker = mMap.addMarker(
+                            MarkerOptions()
+                                .position(positionsTrajectoire[0])
+                                .icon(markerIcon)
+                                .rotation(trajectoires[i].getDirection())
+                                .anchor(0.5f, 0.5f)
+                        )
+                        for (j in 1 until positionsTrajectoire.size) {
+                            delay(33) // Attendre 33 ms avant la prochaine itération
+                            marker!!.position = positionsTrajectoire[j]
+                        }
+                        marker!!.remove()
                     }
-                    marker!!.remove()
+                    trajectoireLance = false
                 }
             }
         }
