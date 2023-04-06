@@ -66,11 +66,12 @@ class MainActivity : AppCompatActivity() {
             isFirstStart = false
         }
 
-        // Ajout du click listener sur le bouton de lancement de la fenetre 3 : Créer une trajectoire : TrajectoryAddActivity
+        // Ajout du click listener sur le bouton de lancement de la fenetre 2 : Piloter mon drone : MapsActivity
         boutonDrone.setOnClickListener{
             // Lancement de l'activité
             val intent = Intent(this@MainActivity, MapsActivity::class.java)
-            startActivity(intent)
+            intent.putExtra("drone_object", drone)
+            myActivityResultLauncher.launch(intent)
         }
 
         // Ajout du click listener sur le bouton de lancement de la fenetre 3 : Mes trajectoires : TrajectoryAddActivity

@@ -8,7 +8,6 @@ import kotlin.math.*
 class Trajectoire(val positionDebut : Marker, val positionFin : Marker, var polyline: Polyline) {
 
     private val nom: String = ""
-    private val listePoints: List<Point> = ArrayList()
     private var vitesse: Double = 15.0
 
     companion object {
@@ -17,9 +16,6 @@ class Trajectoire(val positionDebut : Marker, val positionFin : Marker, var poly
 
     val id = counter++
 
-    fun getNom() : String{
-        return this.nom
-    }
     fun getVitesse() : Double{
         return this.vitesse
     }
@@ -27,11 +23,7 @@ class Trajectoire(val positionDebut : Marker, val positionFin : Marker, var poly
         this.vitesse = vitesse
     }
 
-    fun getListePoints() : List<Point>{
-        return this.listePoints
-    }
-
-    // Fonction permettant de générer toutes les coordonnées entre les points de début et de fin des markers
+    // Fonction permettant de générer toutes les coordonnées entre les points de début et les points de fin
     fun getCoordinates(): List<LatLng> {
         val r = 6371
         val latA = Math.toRadians(this.positionDebut.position.latitude)

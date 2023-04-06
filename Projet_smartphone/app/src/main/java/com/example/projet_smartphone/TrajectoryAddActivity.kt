@@ -46,6 +46,7 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
     private val DEFAULT_ZOOM = 14
     private val PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1
 
+     // Fonction permettant la création de l'activité et de son layout. Ajout des clicks listeners sur les boutons permettant de lancer le popup de sauvegarde et de lancer la trajectoire
     @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -415,7 +416,7 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
         )
     }
 
-    // Fonction permettant de rajouter un marker à la map
+    // Fonction permettant de rajouter un marker à la map avec son numéro
     private fun addMarker(position : LatLng, numero : Int) : Marker{
         return mMap.addMarker(MarkerOptions()
             .position(position)
