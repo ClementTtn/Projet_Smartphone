@@ -43,6 +43,8 @@ class Drone(val nom: String) : Parcelable {
         }
     }
 
+    // Récupère la trame et analyse les données NMEA pour extraire la latitude, la longitude,
+    // la vitesse et l'angle de trajectoire d'un drone et mettre à jour les propriétés du drone en conséquence.
     fun parseNMEA(trameNMEA: String) {
         val lines = trameNMEA.split("\n")
 
@@ -84,6 +86,8 @@ class Drone(val nom: String) : Parcelable {
     }
 
 
+    // Prend en entrée la latitude, la longitude et la vitesse du drone,
+    // met à jour les propriétés du drone en conséquence et renvoie une trame NMEA pour transmettre les données.
     fun genereTrameNMEA(latitude: Double,longitude: Double,vitesse: Double ): String {
         this.positionActuel.latLng = LatLng(latitude,longitude)
         this.vitesse = vitesse

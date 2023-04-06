@@ -6,10 +6,14 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
-
+/*
+Cette class permet d'exporter les données d'une trajectoire que l'on enregistre dans un fichier au format GPX,
+une utilise cette classe dans la vue TrajectoryAddActivity
+ */
 class TrajectoireManager(var listPoints: List<Point>, var nom: String) {
 
 
+    // Génère une chaîne de caractères représentant les données de la trajectoire au format GPX. On utilise des balises pour structurées les données.
     fun exportToGPX(): String {
         val gpxContent = StringBuilder()
         val dateFormatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
@@ -40,11 +44,13 @@ class TrajectoireManager(var listPoints: List<Point>, var nom: String) {
         return gpxContent.toString()
     }
 
+    // Sauvegarde le contenu de la chaîne de caractères générée par la méthode `exportToGPX()` dans un fichier avec un nom donné.
     fun saveGPXToFile(context: Context, gpxContent: String, fileName: String) {
         val file = File(context.filesDir, fileName)
         file.writeText(gpxContent)
     }
 
+    // Lit le contenu d'un fichier GPX avec un nom donné et renvoie le contenu sous forme de chaîne de caractères.
     fun readGPXFile(context: Context, fileName: String): String {
         val file = File(context.filesDir, fileName)
         return file.readText()

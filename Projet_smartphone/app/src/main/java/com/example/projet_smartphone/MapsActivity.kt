@@ -40,6 +40,7 @@ import com.google.android.gms.maps.model.Marker
 import kotlin.math.*
 
 
+// Pilotage du drone avec le gyroscope
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListener {
 
     private lateinit var mMap: GoogleMap
@@ -73,6 +74,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
         return LatLng(updatedLat, updatedLng)
     }
 
+
+    // Initialise la carte Google Maps, récupère les permissions de localisation de l'utilisateur,
+    // crée et affiche le marqueur du drone sur la carte. Elle crée également des listeners pour les boutons de zoom et le bouton de suivi de caméra,
+    // ainsi qu'un listener pour le bouton de retour au menu principal.
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -99,17 +104,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
 
     }
 
+
+    //écupère l'instance de GoogleMap, met à jour l'interface utilisateur en fonction de l'état des permissions,
+    // crée le marqueur du drone sur la carte, et crée des écouteurs pour les boutons de zoom et le bouton de suivi de caméra.
     override fun onMapReady(googleMap: GoogleMap) {
 
         mMap = googleMap
 
-        // Prompt the user for permission.
         getLocationPermission()
-
-        // Turn on the My Location layer and the related control on the map.
         updateLocationUI()
-
-        // Get the current location of the device and set the position of the map.
         getDeviceLocation()
 
         val extras = intent.extras
@@ -178,6 +181,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
         }
     }
 
+
     override fun onSensorChanged(event: SensorEvent?) {
         // Checks for the sensor we have registered
         if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
@@ -195,6 +199,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
         return
     }
 
+
+    // Supprime le fragment de la carte et renvoie l'objet drone à l'activité MainActivity.
     private fun onDestroyMap() {
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as? SupportMapFragment
         mapFragment?.let {
@@ -215,6 +221,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
     private var cameraFollowsDrone: Boolean = true
 
 
+    // Appel toutes les secondes pour mettre à jour la position du marqueur du drone sur la carte et calculer la vitesse du drone en utilisant les données de l'accéléromètre.
     private fun startMarkerRefresh() {
         handler.postDelayed(object : Runnable {
             override fun run() {
