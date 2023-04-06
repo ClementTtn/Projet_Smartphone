@@ -27,7 +27,7 @@ class TrajectoireManager(var listPoints: List<Point>, var nom: String) {
                 val time = dateFormatter.format(Date()) // Utilisez la date et l'heure actuelles pour cet exemple
                 gpxContent.append("\t\t\t<trkpt lat=\"${point.latLng.latitude}\" lon=\"${point.latLng.longitude}\">\n")
                 gpxContent.append("\t\t\t\t<time>$time</time>\n")
-                gpxContent.append("\t\t\t\t<name>${point.numero}</name>\n")
+                gpxContent.append("\t\t\t\t<id>${point.numero}</id>\n")
                 gpxContent.append("\t\t\t</trkpt>\n")
             }
 
