@@ -71,6 +71,10 @@ class Drone(val nom: String) : Parcelable {
         }
     }
 
+    fun setAngle(angle : Double){
+        this.angle = angle
+    }
+
 
     // La fonction parseLatitude extrait la latitude à partir d'une chaîne de caractères.
     private fun parseLatitude(latitudeStr: String, direction: String): Double {
