@@ -58,12 +58,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
     var vitesseMAX = 10.0
 
     fun updateLatLng(currentLatLng: LatLng, direction: Double, speed: Double): LatLng {
-        val distance = speed / 3600.0 // Convert speed from km/h to km/s
+        val distance = speed / 3600.0 // Convertir la vitesse de km/h en km/s
 
         val lat1 = Math.toRadians(currentLatLng.latitude)
         val lon1 = Math.toRadians(currentLatLng.longitude)
 
-        val r = 6371.0 // Earth radius in km
+        val r = 6371.0
 
         val lat2 = asin(sin(lat1) * cos(distance/r) + cos(lat1) * sin(distance/r) * cos(direction))
         val lon2 = lon1 + atan2(sin(direction) * sin(distance/r) * cos(lat1), cos(distance/r) - sin(lat1) * sin(lat2))
@@ -151,7 +151,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
             mMap.animateCamera(CameraUpdateFactory.zoomOut())
         }
 
-
+        // Ajout d'un click listener pour le bouton de suivi de caméra. Lorsque le bouton est cliqué,
+        // la variable cameraFollowsDrone est inversée, change le texte du bouton en fonction, et la caméra suit le drone ou reste fixe selon la valeur de cette variable.
         val toggleCameraFollowButton = findViewById<Button>(R.id.toggle_camera_follow)
         toggleCameraFollowButton.setOnClickListener {
             cameraFollowsDrone = !cameraFollowsDrone
@@ -166,11 +167,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
         startMarkerRefresh()
     }
 
+    // Mise en place des capteurs pour l'accéléromètre. Le capteur d'accéléromètre est récupéré et enregistré pour recevoir des mises à jour.
     private fun setUpSensorStuff() {
-        // Create the sensor manager
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
 
-        // Specify the sensor you want to listen to
         sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.also { accelerometer ->
             sensorManager.registerListener(
                 this,
@@ -182,8 +182,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
     }
 
 
+    // Les valeurs de l'accéléromètre sont utilisées pour calculer la direction et la vitesse du drone.
     override fun onSensorChanged(event: SensorEvent?) {
-        // Checks for the sensor we have registered
         if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
             val xValue = event.values[0]*-1
             val yValue = event.values[1]
@@ -210,7 +210,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
                 .commit()
         }
     }
-
+    // Envoie une reponse  donnée du drone vers la page MainActivity
     private fun resendData(){
         val intent = Intent(this@MapsActivity, MainActivity::class.java)
         intent.putExtra("drone_object", drone)
