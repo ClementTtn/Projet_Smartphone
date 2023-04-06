@@ -222,7 +222,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, SensorEventListene
                 var vitesse = vitesseMAX * accelerometerValues[1]
                 positionDrone = updateLatLng(positionDrone, accelerometerValues[0], vitesse)
                 vitesse *= 0.53996
-                println(drone.genereTrameNMEA(positionDrone.latitude, positionDrone.latitude, vitesse))
+                println(drone.genereTrameNMEA(positionDrone.latitude, positionDrone.longitude, vitesse))
 
                 val speedTextView = findViewById<TextView>(R.id.speed_text)
                 speedTextView.text = buildString {
