@@ -27,7 +27,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.io.*
 
-class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback, OnMapReadyCallback {
+class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback, OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: TrajectoryAddActivityBinding
@@ -59,7 +59,7 @@ class trajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setHomeButtonEnabled(true)
-            setBackgroundDrawable(ContextCompat.getDrawable(this@trajectoryAddActivity, R.drawable.background_degrade))
+            setBackgroundDrawable(ContextCompat.getDrawable(this@TrajectoryAddActivity, R.drawable.background_degrade))
         }
         window.statusBarColor = Color.TRANSPARENT
 

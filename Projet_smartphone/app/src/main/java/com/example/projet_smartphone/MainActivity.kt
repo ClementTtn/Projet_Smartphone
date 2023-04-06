@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity() {
 
         val boutonTrajectory = findViewById<Button>(R.id.button_trajectory)
         boutonTrajectory.setOnClickListener{
-            val intent = Intent(this@MainActivity, trajectoryAddActivity::class.java)
+            val intent = Intent(this@MainActivity, TrajectoryAddActivity::class.java)
 
             startActivity(intent)
         }

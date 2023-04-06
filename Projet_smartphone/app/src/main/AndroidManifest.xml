@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
 
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -38,7 +39,7 @@
             android:label="@string/title_activity_maps" />
 
         <activity
-            android:name=".trajectoryAddActivity"
+            android:name=".TrajectoryAddActivity"
             android:exported="false"
             android:label="@string/title_activity_trajectory_add" />
     </application>
