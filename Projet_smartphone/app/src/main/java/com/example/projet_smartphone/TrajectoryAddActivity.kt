@@ -159,6 +159,7 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
             // Lancement de la trajectoire
             if(!this.trajectoireLance){
                 trajectoireLance = true
+                lancerButton.text = getString(R.string.button_lancer_encours)
                 GlobalScope.launch(Dispatchers.Main) {
 
                     // Affichage du trajet du drone sur chaque trajectoire
@@ -202,6 +203,7 @@ class TrajectoryAddActivity : AppCompatActivity(), OnMapsSdkInitializedCallback,
                         marker!!.remove()
                     }
                     trajectoireLance = false
+                    lancerButton.text = getString(R.string.button_lancer)
                 }
             }
         }
